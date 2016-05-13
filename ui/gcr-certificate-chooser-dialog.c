@@ -20,10 +20,13 @@
 #include "config.h"
 
 #include "gcr/gcr-icons.h"
+#include "gcr/gcr-parser.h"
 
 #include "gcr-dialog-util.h"
 #include "gcr-secure-entry-buffer.h"
 #include "gcr-certificate-chooser-dialog.h"
+#include "gcr-viewer.h"
+#include "gcr-viewer-widget.h"
 
 #include "egg/egg-secure-memory.h"
 
@@ -62,13 +65,8 @@ enum {
 
 struct _GcrCertificateChooserDialog {
 	GtkDialog parent;
-	GtkBuilder *builder;
-	GtkWidget *password_area;
-	GtkLabel *token_label;
-	GtkImage *token_image;
-	GtkEntry *password_entry;
-	GtkEntry *label_entry;
-	gboolean label_changed;
+	GtkWidget *file_chooser;
+	GcrViewerWidget *viewer_widget;
 };
 
 typedef struct _GcrCertificateChooserDialogClass GcrCertificateChooserDialogClass;
@@ -80,53 +78,58 @@ struct _GcrCertificateChooserDialogClass {
 G_DEFINE_TYPE (GcrCertificateChooserDialog, gcr_certificate_chooser_dialog, GTK_TYPE_DIALOG);
 
 static void
-on_label_changed (GtkEditable *editable,
-                  gpointer user_data)
+on_update_preview(GtkWidget *widget, gpointer *data)
 {
-	GcrCertificateChooserDialog *self = GCR_CERTIFICATE_CHOOSER_DIALOG (user_data);
-	self->label_changed = TRUE;
+	GcrCertificateChooserDialog *self = GCR_CERTIFICATE_CHOOSER_DIALOG (data);
+	GtkFileChooser *chooser = GTK_FILE_CHOOSER(widget);
+	GcrViewerWidget *viewer_widget = self->viewer_widget;
+	GcrViewer *viewer = gcr_viewer_widget_get_viewer(viewer_widget);
+
+	while (gcr_viewer_count_renderers(viewer))
+		gcr_viewer_remove_renderer(viewer, gcr_viewer_get_renderer(viewer, 0));
+
+	char *filename = gtk_file_chooser_get_preview_filename(chooser);
+	if (!filename) {
+		gtk_file_chooser_set_preview_widget_active(chooser, FALSE);
+		return;
+	}
+	printf("Preview %s\n", filename);
+	gcr_viewer_widget_load_file(viewer_widget, g_file_new_for_path(filename));
+	gtk_file_chooser_set_preview_widget_active(chooser, TRUE);
+	g_free(filename);
 }
 
 static void
 gcr_certificate_chooser_dialog_constructed (GObject *obj)
 {
 	GcrCertificateChooserDialog *self = GCR_CERTIFICATE_CHOOSER_DIALOG (obj);
-	GError *error = NULL;
-	GtkEntryBuffer *buffer;
-	GtkWidget *widget;
 	GtkBox *contents;
 	GtkWidget *button;
 
 	G_OBJECT_CLASS (gcr_certificate_chooser_dialog_parent_class)->constructed (obj);
 
-	if (!gtk_builder_add_from_file (self->builder, UIDIR "gcr-pkcs11-import-dialog.ui", &error)) {
-		g_warning ("couldn't load ui builder file: %s", error->message);
-		return;
-	}
+	self->file_chooser = gtk_file_chooser_widget_new(GTK_FILE_CHOOSER_ACTION_OPEN);
+
+	GtkFileFilter *filefilter = gtk_file_filter_new();
+	gtk_file_filter_set_name (filefilter,"X.509 Certificate Format");
+	gtk_file_filter_add_pattern (filefilter, "*.pem");
+	gtk_file_filter_add_pattern (filefilter, "*.crt");
+	gtk_file_filter_add_pattern (filefilter, "*.cer");
+	gtk_file_filter_add_pattern (filefilter, "*.der");
+	gtk_file_filter_add_pattern (filefilter, "*.crt");
+	gtk_file_filter_add_pattern (filefilter, "*.p12");
+	gtk_file_filter_add_pattern (filefilter, "*.pfx");
+	gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (self->file_chooser), filefilter);
+
+	self->viewer_widget = gcr_viewer_widget_new();
+
+	g_signal_connect(GTK_FILE_CHOOSER (self->file_chooser), "update-preview", G_CALLBACK (on_update_preview), self);
+	gtk_file_chooser_set_preview_widget(GTK_FILE_CHOOSER (self->file_chooser), GTK_WIDGET (self->viewer_widget));
 
 	/* Fill in the dialog from builder */
-	widget = GTK_WIDGET (gtk_builder_get_object (self->builder, "pkcs11-import-dialog"));
 	contents = GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (self)));
-	gtk_box_pack_start (contents, widget, TRUE, TRUE, 0);
-
-	/* The password area */
-	self->password_area = GTK_WIDGET (gtk_builder_get_object (self->builder, "unlock-area"));
-	gtk_widget_hide (self->password_area);
-
-	/* Add a secure entry */
-	buffer = gcr_secure_entry_buffer_new ();
-	self->password_entry = GTK_ENTRY (gtk_builder_get_object (self->builder, "password-entry"));
-	gtk_entry_set_buffer (self->password_entry, buffer);
-	gtk_entry_set_activates_default (self->password_entry, TRUE);
-	g_object_unref (buffer);
-
-	self->token_label = GTK_LABEL (gtk_builder_get_object (self->builder, "token-description"));
-	self->token_image = GTK_IMAGE (gtk_builder_get_object (self->builder, "token-image"));
-
-	/* Setup the label */
-	self->label_entry = GTK_ENTRY (gtk_builder_get_object (self->builder, "label-entry"));
-	g_signal_connect (self->label_entry, "changed", G_CALLBACK (on_label_changed), self);
-	gtk_entry_set_activates_default (self->label_entry, TRUE);
+	gtk_container_add (GTK_CONTAINER(contents), self->file_chooser);
+	gtk_widget_show_all(GTK_WIDGET (self));
 
 	/* Add our various buttons */
 	button = gtk_dialog_add_button (GTK_DIALOG (self), _("_Cancel"), GTK_RESPONSE_CANCEL);
@@ -141,15 +144,13 @@ gcr_certificate_chooser_dialog_constructed (GObject *obj)
 static void
 gcr_certificate_chooser_dialog_init (GcrCertificateChooserDialog *self)
 {
-	self->builder = gtk_builder_new ();
+
 }
 
 static void
 gcr_certificate_chooser_dialog_finalize (GObject *obj)
 {
 	GcrCertificateChooserDialog *self = GCR_CERTIFICATE_CHOOSER_DIALOG (obj);
-
-	g_object_unref (self->builder);
 
 	G_OBJECT_CLASS (gcr_certificate_chooser_dialog_parent_class)->finalize (obj);
 }
