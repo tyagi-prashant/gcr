@@ -298,7 +298,8 @@ noinst_PROGRAMS += \
 	frob-request \
 	frob-system-prompt \
 	frob-unlock \
-	frob-unlock-options
+	frob-unlock-options \
+	gcr-certificate-chooser-test
 
 frob_certificate_SOURCES = ui/frob-certificate.c
 frob_certificate_CFLAGS = $(ui_CFLAGS)
@@ -344,3 +345,8 @@ frob_unlock_LDADD = $(ui_LIBS)
 frob_unlock_options_SOURCES = ui/frob-unlock-options.c
 frob_unlock_options_CFLAGS = $(ui_CFLAGS)
 frob_unlock_options_LDADD = $(ui_LIBS)
+
+gcr_certificate_chooser_test_SOURCES = ui/gcr-certificate-chooser-test.c
+gcr_certificate_chooser_test_CFLAGS = ${ui_CFLAGS}
+gcr_certificate_chooser_test_LDADD = $(ui_LIBS)
+
