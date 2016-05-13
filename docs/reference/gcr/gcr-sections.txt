@@ -133,6 +133,20 @@ gcr_certificate_request_format_get_type
 </SECTION>
 
 <SECTION>
+<FILE>gcr-certificate-chooser-dialog</FILE>
+GcrCertificateChooserDialog
+gcr_certificate_chooser_dialog_new
+gcr_certificate_chooser_dialog_run
+gcr_certificate_chooser_dialog_run_async
+gcr_certificate_chooser_dialog_run_finish
+<SUBSECTION Private>
+GCR_CERTIFICATE_CHOOSER_DIALOG
+GCR_IS_CERTIFICATE_CHOOSER_DIALOG
+GCR_TYPE_CERTIFICATE_CHOOSER_DIALOG
+gcr_certificate_chooser_dialog_get_type
+</SECTION>
+
+<SECTION>
 <FILE>gcr-importer</FILE>
 GcrImporter
 GcrImporterIface

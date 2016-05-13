@@ -32,6 +32,7 @@
 
 	<part id="widgets">
 		<title>Widgets</title>
+		<xi:include href="xml/gcr-certificate-chooser-dialog.xml"/>
 		<xi:include href="xml/gcr-certificate-widget.xml"/>
 		<xi:include href="xml/gcr-key-widget.xml"/>
 		<xi:include href="xml/gcr-column.xml"/>

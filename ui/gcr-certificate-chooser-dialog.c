@@ -31,8 +31,26 @@
 
 #include <glib/gi18n-lib.h>
 
-EGG_SECURE_DECLARE (import_dialog);
+/**
+ * SECTION:gcr-certificate-chooser-dialog
+ * @title: GcrCertificateChooserDialog
+ * @short_description: A dialog which allows selection of personal certificates
+ *
+ * A dialog which guides the user through selection of a certificate and
+ * corresponding private key, located in files or PKCS\#11 tokens.
+ */
 
+/**
+ * GcrCertificateChooserDialog:
+ *
+ * A certificate chooser dialog object.
+ */
+
+/**
+ * GcrCertificateChooserDialogClass:
+ *
+ * Class for #GcrCertificateChooserDialog
+ */
 #define GCR_CERTIFICATE_CHOOSER_DIALOG_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), GCR_TYPE_CERTIFICATE_CHOOSER_DIALOG, GcrCertificateChooserDialogClass))
 #define GCR_IS_CERTIFICATE_CHOOSER_CLASS(klass)        (G_TYPE_CHECK_CLASS_TYPE ((klass), GCR_TYPE_CERTIFICATE_CHOOSER_DIALOG))
 #define GCR_CERTIFICATE_CHOOSER_DIALOG_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), GCR_TYPE_CERTIFICATE_CHOOSER_DIALOG, GcrCertificateChooserDialogClass))
@@ -147,6 +165,7 @@ gcr_certificate_chooser_dialog_class_init (GcrCertificateChooserDialogClass *kla
 
 /**
  * gcr_certificate_chooser_dialog_new:
+ * @parent: the parent window
  *
  * Create a new certxificate chooser dialog.
  *
