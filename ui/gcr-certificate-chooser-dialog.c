@@ -99,19 +99,15 @@ on_certificate_choosed(GcrViewerWidget *widget,
 	GcrViewer *viewer = gcr_viewer_widget_get_viewer(viewer_widget);
         gboolean is_viewer_contain_key = FALSE;
         gboolean is_viewer_contain_certificate = FALSE;
-        guint num_of_renderer, i;
-        num_of_renderer = gcr_viewer_count_renderers (viewer);
-        gtk_widget_set_sensitive(GTK_WIDGET(self->next_button), FALSE);
         
         gulong class;
-        for(i = 0; i < num_of_renderer; i++) {
-            attributes = gcr_renderer_get_attributes(renderer,i);
+        attributes = gcr_renderer_get_attributes(renderer);
         
-            if (gck_attributes_find_ulong (attributes, CKA_CLASS, &class) && class == CKO_CERTIFICATE)
-                is_viewer_contain_certificate = TRUE;       
-            if (gck_attributes_find_ulong (attributes, CKA_CLASS, &class) && class == CKO_PRIVATE_KEY)
-                is_viewer_contain_key = TRUE;                 
-        }
+        if (gck_attributes_find_ulong (attributes, CKA_CLASS, &class) && class == CKO_CERTIFICATE)
+            is_viewer_contain_certificate = TRUE;
+        if (gck_attributes_find_ulong (attributes, CKA_CLASS, &class) && class == CKO_PRIVATE_KEY)
+            is_viewer_contain_key = TRUE;
+
         if(is_viewer_contain_certificate)
             gtk_widget_set_sensitive(GTK_WIDGET(self->next_button), TRUE);
            
