@@ -236,7 +236,7 @@ on_parser_authenticate_for_data(GcrParser *parser,
 
         unlock = _gcr_unlock_renderer_new_for_parsed(parser);
         if(unlock != NULL) {
-               g_object_set(G_OBJECT(unlock), "label", "Please Unlock");
+               g_object_set(G_OBJECT(unlock), "label", "Please Unlock", NULL);
                gcr_viewer_add_renderer(self->viewer, GCR_RENDERER(unlock));
                g_signal_connect(unlock, "unlock-clicked", G_CALLBACK(on_unlock_renderer_clicked), self);
        }
