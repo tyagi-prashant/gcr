@@ -145,8 +145,8 @@ on_certificate_choosed(GcrParser *parser,
         GckAttributes *attributes;
         char *filename = gtk_file_chooser_get_preview_filename(GTK_FILE_CHOOSER(self->page1_file_chooser));
        // gtk_file_chooser_set_preview_widget_active(self->page1_file_chooser, FALSE);
-        if(g_strcmp0(self->key_uri,  filename) != 0)
-            self->is_key_choosen = FALSE;
+    //    if(g_strcmp0(self->key_uri,  filename) != 0)
+      //      self->is_key_choosen = FALSE;
         if (self->certificate_uri && g_strcmp0(self->certificate_uri, filename) != 0) {
 		g_free(self->certificate_uri);
 		self->certificate_uri = NULL;
@@ -160,7 +160,7 @@ on_certificate_choosed(GcrParser *parser,
             self->is_certificate_choosen = TRUE;
             gtk_widget_set_sensitive(GTK_WIDGET(self->next_button), TRUE);
 	    if (self->certificate_uri)
-		    on_next_button_clicked(GTK_WIDGET(self->next_button), self);
+		    gtk_button_clicked(GTK_BUTTON(self->next_button));
 	    else printf("not set\n");
         }
 
@@ -189,7 +189,7 @@ on_page1_file_activated(GtkWidget *widget, gpointer *data)
 	/* if Next button activated, then behave as if it's pressed */
 }
 
-static void 
+static gboolean
 on_unlock_renderer_clicked(GcrUnlockRenderer *unlock, 
                            gpointer user_data)
 {
@@ -203,8 +203,7 @@ on_unlock_renderer_clicked(GcrUnlockRenderer *unlock,
 
                 gcr_viewer_remove_renderer (self->viewer, GCR_RENDERER (unlock));
                 gtk_file_chooser_set_preview_widget_active(GTK_FILE_CHOOSER(self->page1_file_chooser), FALSE);
-	        while (gcr_viewer_count_renderers(self->viewer))
-		    gcr_viewer_remove_renderer(self->viewer, gcr_viewer_get_renderer(self->viewer, 0));
+		gcr_viewer_remove_renderer(self->viewer, gcr_viewer_get_renderer(self->viewer, 0));
                 g_object_unref (unlock);
 
         } else if (g_error_matches (error, GCR_DATA_ERROR, GCR_ERROR_LOCKED)){
@@ -217,6 +216,7 @@ on_unlock_renderer_clicked(GcrUnlockRenderer *unlock,
                 _gcr_unlock_renderer_show_warning (unlock, error->message);
                 g_error_free (error);
         }
+        return TRUE;
 
       
 }
@@ -258,6 +258,8 @@ on_page1_update_preview(GtkWidget *widget, gpointer *data_main)
         gtk_label_set_text(GTK_LABEL(self->key_label), "No key selected yet");
     
 	gtk_file_chooser_set_preview_widget_active(chooser, FALSE);
+        self->is_key_choosen = FALSE;
+        self->is_certificate_choosen = FALSE;
 	char *filename = gtk_file_chooser_get_preview_filename(chooser);
 	gtk_widget_set_sensitive(GTK_WIDGET(self->next_button), FALSE);
 	if (!filename || g_file_test(filename, G_FILE_TEST_IS_DIR))
@@ -285,7 +287,7 @@ gcr_certificate_chooser_dialog_constructed (GObject *obj)
 {
 	GcrCertificateChooserDialog *self = GCR_CERTIFICATE_CHOOSER_DIALOG (obj);
         GtkWidget  *content;
-        gtk_window_set_title(GTK_WINDOW(self), "Certificate Chooser");
+        gtk_window_set_title(GTK_WINDOW(self), "Choose Certificate");
         G_OBJECT_CLASS (gcr_certificate_chooser_dialog_parent_class)->constructed (obj);
 
 	content = GTK_WIDGET(GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (self))));
@@ -364,6 +366,7 @@ gcr_certificate_chooser_dialog_constructed (GObject *obj)
         g_signal_connect(self->parser, "authenticate", G_CALLBACK(on_parser_authenticate_for_data), self);
        
         /*Page2 Construction */
+
         /*Page3 Construction */
 
 	/* Add our various buttons */
