@@ -79,6 +79,7 @@ struct _GcrCertificateChooserDialog {
        gboolean is_certificate_choosen;
        gboolean is_key_choosen;
        GtkWidget *hbox;
+       gint password_wrong_count;
        GtkWidget *vbox_password;
        GtkWidget *vbox1;
        GtkWidget *cert_hbox;
@@ -152,8 +153,12 @@ on_next_button_clicked(GtkWidget *widget, gpointer *data)
        self->certificate_uri = fname;
        gtk_window_set_title(GTK_WINDOW(self), "Choose Key");
        gtk_stack_set_visible_child(GTK_STACK(self->notebook), GTK_WIDGET(self->page2_box));
-       if(self->is_key_choosen)
+       if (self->is_key_choosen) {
            gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(self->page2_file_chooser), fname);
+           gtk_button_clicked(GTK_BUTTON(self->page2_next_button));
+       }  else 
+            gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(self->page2_file_chooser),
+                                         g_file_get_path(g_file_get_parent(g_file_new_for_path (fname))));         
 }
 
 static void
@@ -266,19 +271,9 @@ on_unlock_renderer_clicked(GcrUnlockRenderer *unlock,
 
                 gcr_viewer_remove_renderer (viewer, GCR_RENDERER (unlock));
                 gtk_file_chooser_set_preview_widget_active(GTK_FILE_CHOOSER(chooser), FALSE);
-		gcr_viewer_remove_renderer(viewer, gcr_viewer_get_renderer(viewer, 0));
                 g_object_unref (unlock);
 
-        } else if (g_error_matches (error, GCR_DATA_ERROR, GCR_ERROR_LOCKED)){
-                _gcr_unlock_renderer_show_warning (unlock,  _("The password was incorrect"));
-                _gcr_unlock_renderer_focus_password (unlock);
-                _gcr_unlock_renderer_set_password (unlock, "");
-                g_error_free (error);
-
-        } else {
-                _gcr_unlock_renderer_show_warning (unlock, error->message);
-                g_error_free (error);
-        }
+        } 
         return TRUE;
 
       
@@ -310,8 +305,16 @@ on_parser_authenticate_for_data(GcrParser *parser,
         if(unlock != NULL) {
                g_object_set(G_OBJECT(unlock), "label", "Please Unlock", NULL);
                gcr_viewer_add_renderer(viewer, GCR_RENDERER(unlock));
+               if(self->password_wrong_count) {
+                              _gcr_unlock_renderer_show_warning (unlock,  _("The password was incorrect"));
+                              _gcr_unlock_renderer_focus_password (unlock);
+                              _gcr_unlock_renderer_set_password (unlock, "");
+               }
+
+
                g_signal_connect(unlock, "unlock-clicked", G_CALLBACK(on_unlock_renderer_clicked), self);
        }
+        self->password_wrong_count += 1;
 
        return TRUE;
 }
@@ -328,6 +331,7 @@ on_page2_update_preview(GtkWidget *widget,
         guchar *data;
         gsize n_data;
         GBytes *bytes;
+        self->password_wrong_count = 0;
         gtk_label_set_text(GTK_LABEL(self->key_label), "No key selected yet");
     
 	gtk_file_chooser_set_preview_widget_active(chooser, FALSE);
@@ -358,6 +362,7 @@ on_page1_update_preview(GtkWidget *widget, gpointer *user_data)
         guchar *data;
         gsize n_data;
         GBytes *bytes;
+        self->password_wrong_count = 0;
         gtk_label_set_text(GTK_LABEL(self->cert_label), "No certificate selected yet");
         gtk_label_set_text(GTK_LABEL(self->key_label), "No key selected yet");
     
@@ -392,6 +397,7 @@ gcr_certificate_chooser_dialog_constructed (GObject *obj)
         GtkWidget  *content, *button_box, *button, *confirm_button;
         gtk_window_set_title(GTK_WINDOW(self), "Choose Certificate");
         self->is_certificate_choosen = FALSE;
+        self->password_wrong_count = 0;
         G_OBJECT_CLASS (gcr_certificate_chooser_dialog_parent_class)->constructed (obj);
 
 	content = GTK_WIDGET(GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (self))));
