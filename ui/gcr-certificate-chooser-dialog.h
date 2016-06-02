@@ -23,7 +23,7 @@
 #ifndef __GCR_CERTIFICATE_CHOOSER_DIALOG_H__
 #define __GCR_CERTIFICATE_CHOOSER_DIALOG_H__
 
-#include <gck/gck.h>
+#include  "gck/gck.h"
 
 #include <gtk/gtk.h>
 

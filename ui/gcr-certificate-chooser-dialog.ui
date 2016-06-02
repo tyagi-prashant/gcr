@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!---interface-requires gtk+ 2.12 -->
+  <object class="GtkFileFilter" id="page1-filefilter">
+    <patterns>
+      <pattern>*.pem</pattern>
+      <pattern>*.crt</pattern>
+      <pattern>*.der</pattern>
+      <pattern>*.cer</pattern>
+      <pattern>*.p12</pattern>
+      <pattern>*.pfx</pattern>
+    </patterns>
+  </object>
+  <object class="GtkFileFilter" id="page2-filefilter">
+    <patterns>
+      <pattern>*.pem</pattern>
+      <pattern>*.der</pattern>
+      <pattern>*.key</pattern>
+      <pattern>*.p12</pattern>
+      <pattern>*.pfx</pattern>
+    </patterns>
+  </object>
+    
+  <object class="GtkButton" id="default-button">
+    <property name="visible">False</property>
+    <property name="can_default">True</property>
+  </object>
+  <object class="GtkHBox" id="next-preview-box">
+    <property name="visible">True</property>
+    <property name="border_width">6</property>
+    <property name="spacing">6</property>
+    <child>
+      <object class="GtkButton" id="page2-prev-button">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">prev</property>
+      </object>
+      <packing>
+        <property name="position">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkButton" id="page2-next-button">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="sensitive">False</property>
+        <property name="label" translatable="yes">next</property>
+      </object>
+      <packing>
+        <property name="position">1</property>
+      </packing>
+    </child>
+  </object>    
+  <object class="GtkButton" id="page1-next-button">
+    <property name="visible">True</property>
+    <property name="sensitive">False</property>
+    <property name="label" translatable="yes">next</property>
+  </object>    
+  <object class="GtkHBox" id="certificate-chooser-dialog">
+    <property name="visible">True</property>
+    <property name="can_focus">True</property>
+    <property name="border_width">6</property>
+    <property name="spacing">6</property>
+    <child>
+      <object class="GtkVBox" id="progress-sidebar">
+        <property name="can_focus">True</property>
+        <property name="spacing">6</property>
+        <child>
+          <object class="GtkHBox" id="certificate-area">
+            <property name="can_focus">True</property>
+            <property name="spacing">6</property>
+            <child>
+              <object class="GtkImage" id="certificate-image">
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="certificate-label">
+                 <property name="visible">True</property>
+                 <property name="can_focus">False</property>
+                 <property name="xalign">0</property>
+                 <property name="label" translatable="yes">No certificate selected</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>       
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkHBox" id="key-area">
+            <property name="can_focus">True</property>
+            <property name="spacing">6</property>
+            <child>
+              <object class="GtkImage" id="key-image">
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="key-label">
+                 <property name="visible">True</property>
+                 <property name="can_focus">False</property>
+                 <property name="xalign">0</property>
+                 <property name="label" translatable="yes">No key selected</property>
+
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>       
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkStack" id="content-area">
+        <property name="can_focus">True</property>
+        <property name="visible">True</property>
+        <property name="transition-type">GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT</property>
+        <child>
+          <object class="GtkVBox" id="page1-box">
+            <property name="can_focus">True</property>
+            <property name="visible">True</property>
+            <child>
+              <object class="GtkStack" id="page1-stack">
+                <property name="can_focus">True</property>
+                <property name="visible">True</property>
+                <property name="transition-type">GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT</property>
+                <property name="transition-duration">1000</property>
+                <child>
+                  <object class="GtkFileChooserWidget" id="page1-filechooser">
+                    <property name="action">GTK_FILE_CHOOSER_ACTION_OPEN</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="extra-widget">page1-next-button</property>
+                    <property name="preview-widget-active">False</property>
+                  </object>
+                  <packing>
+                    <property name="title">Choose from file</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="page1-pkcs11">
+                    <property name="name">Choose from pkcs11 token</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">PKCS11</property>
+                  </object>
+                  <packing>
+                    <property name="title">Choose from pkcs11 token</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkStackSwitcher" id="page1-stack-switcher">
+                <property name="stack">page1-stack</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>                
+            </child> 
+          </object> 
+        </child>
+        <child>
+          <object class="GtkVBox" id="page2-box">
+            <property name="can_focus">True</property>
+            <property name="visible">True</property>
+            <child>
+              <object class="GtkStack" id="page2-stack">
+                <property name="can_focus">True</property>
+                <property name="visible">True</property>
+                <property name="transition-type">GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT</property>
+                <property name="transition-duration">1000</property>
+                <child>
+                  <object class="GtkFileChooserWidget" id="page2-filechooser">
+                    <property name="action">GTK_FILE_CHOOSER_ACTION_OPEN</property>
+                    <property name="visible">True</property>
+                    <property name="extra-widget">next-preview-box</property>
+                    <property name="preview-widget-active">False</property>
+                  </object>
+                  <packing>
+                    <property name="title">Choose from file</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="page2-pkcs11">
+                    <property name="name">Choose from pkcs11 token</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">PKCS11</property>
+                  </object>
+                  <packing>
+                    <property name="title">Choose from pkcs11 token</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkStackSwitcher" id="page2-stack-switcher">
+                <property name="stack">page2-stack</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>                
+            </child> 
+          </object> 
+        </child>
+        <child>
+          <object class="GtkHBox" id="page3-box">
+            <property name="can_focus">True</property>
+            <property name="visible">True</property>
+            <child>
+              <object class="GtkButton" id="page3-confirm">
+                <property name="can_focus">True</property>
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">confirm</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="page3-prev-button">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="label" translatable="yes">previous</property>
+              </object>
+            </child>
+          </object> 
+          <packing>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
+
+
