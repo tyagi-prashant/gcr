@@ -63,13 +63,25 @@
 #define GCR_IS_CERTIFICATE_CHOOSER_CLASS(klass)        (G_TYPE_CHECK_CLASS_TYPE ((klass), GCR_TYPE_CERTIFICATE_CHOOSER_DIALOG))
 #define GCR_CERTIFICATE_CHOOSER_DIALOG_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), GCR_TYPE_CERTIFICATE_CHOOSER_DIALOG, GcrCertificateChooserDialogClass))
 
+#define GCR_CERTIFICATE_CHOOSER_SIDEBAR_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), GCR_TYPE_CERTIFICATE_CHOOSER_SIDEBAR, GcrCertificateChooserSidebarClass))
+#define GCR_IS_CERTIFICATE_CHOOSER_SIDEBAR_CLASS(klass)        (G_TYPE_CHECK_CLASS_TYPE ((klass), GCR_TYPE_CERTIFICATE_CHOOSER_SIDEBAR))
+#define GCR_CERTIFICATE_CHOOSER_SIDEBAR_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), GCR_TYPE_CERTIFICATE_CHOOSER_SIDEBAR, GcrCertificateChooserSidebarClass))
+
+
+
 enum {
-	PROP_0,
-	PROP_IMPORTER
+	SIGNAL_0,
+	SIGNAL_LOADED
 };
+
+static gint certificate_chooser_signals[SIGNAL_LOADED] = { 0 };
 
 struct _GcrCertificateChooserDialog {
        GtkDialog parent;
+       GList *tokens;
+       GtkListStore *store;
+       GList *blacklist;
+       gboolean loaded;
        GtkBuilder *builder;
        GcrViewer *page1_viewer;
        GcrViewer *page2_viewer;
@@ -82,14 +94,116 @@ struct _GcrCertificateChooserDialog {
        gint password_wrong_count;
 };
 
+struct _GcrCertificateChooserSidebar {
+       GtkScrolledWindow parent;
+       GtkWidget *tree_view;
+};
+
+struct _GcrCertificateChooserSidebarClass {
+       GtkScrolledWindowClass parent_class;
+};
+
 typedef struct _GcrCertificateChooserDialogClass GcrCertificateChooserDialogClass;
+typedef struct _GcrCertificateChooserSidebarClass GcrCertificateChooserSidebarClass;
 
 struct _GcrCertificateChooserDialogClass {
 	GtkDialogClass parent;
+
+        /* Signals */
+        
+         void (*token_loaded) (GcrCertificateChooserDialog *sig);
+};
+
+static const char *token_blacklist[] = { 
+        "pkcs11:manufacturer=Gnome%20Keyring;serial=1:SSH:HOME",
+        "pkcs11:manufacturer=Gnome%20Keyring;serial=1:SECRET:MAIN",
+        "pkcs11:manufacturer=Mozilla%20Foundation;token=NSS%20Generic%20Crypto%20Services",
+         NULL
+};
+
+enum {
+        ROW_TYPE,
+        TOKEN_LABEL
+};
+        
+
+enum {
+      
+        COLUMN_STRING,
+        N_COLUMNS
 };
 
 G_DEFINE_TYPE (GcrCertificateChooserDialog, gcr_certificate_chooser_dialog, GTK_TYPE_DIALOG);
+G_DEFINE_TYPE (GcrCertificateChooserSidebar, gcr_certificate_chooser_sidebar, GTK_TYPE_SCROLLED_WINDOW);
 
+static void
+gcr_certificate_chooser_sidebar_init (GcrCertificateChooserSidebar *self)
+{
+        
+}
+
+static void 
+get_token_label (GtkTreeViewColumn *column,
+                 GtkCellRenderer *cell,
+                 GtkTreeModel *model,
+                 GtkTreeIter *iter,
+                 gpointer user_data)
+{
+
+        gchar *label;
+        gtk_tree_model_get (model, iter, COLUMN_STRING, &label, -1);
+        g_object_set(cell, 
+                     "visible", TRUE,
+                     "text", label,
+                     NULL);
+}
+    
+static void 
+gcr_certificate_chooser_sidebar_constructed (GObject *obj)
+{
+        GcrCertificateChooserSidebar *self = GCR_CERTIFICATE_CHOOSER_SIDEBAR(obj);
+        //GtkTreeSelection *selection;
+        GtkTreeViewColumn *col;
+        GtkCellRenderer *cell;
+
+        G_OBJECT_CLASS (gcr_certificate_chooser_sidebar_parent_class)->constructed (obj);
+        self->tree_view = gtk_tree_view_new();
+        col = gtk_tree_view_column_new ();
+
+        cell = gtk_cell_renderer_text_new ();
+	gtk_tree_view_column_pack_start (col, cell, TRUE);
+	g_object_set (G_OBJECT (cell), "editable", FALSE, NULL);
+	gtk_tree_view_column_set_cell_data_func (col, cell,
+	                                         get_token_label,
+	                                         self, NULL);
+	g_object_set (cell,
+	              "ellipsize", PANGO_ELLIPSIZE_END,
+	              "ellipsize-set", TRUE,
+	              NULL);
+        gtk_tree_view_append_column (GTK_TREE_VIEW(self->tree_view), col);
+        gtk_tree_view_column_set_max_width (GTK_TREE_VIEW_COLUMN (col), 12);
+        gtk_container_add (GTK_CONTAINER (self), GTK_WIDGET (self->tree_view));
+        gtk_widget_show (GTK_WIDGET (self->tree_view));
+}
+	            	            
+static void 
+gcr_certificate_chooser_sidebar_class_init(GcrCertificateChooserSidebarClass *klass)
+{ 
+        GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+        gobject_class->constructed = gcr_certificate_chooser_sidebar_constructed;
+}
+        
+GcrCertificateChooserSidebar *
+gcr_certificate_chooser_sidebar_new ()
+{
+
+        GcrCertificateChooserSidebar *sidebar;
+        sidebar = g_object_new(GCR_TYPE_CERTIFICATE_CHOOSER_SIDEBAR,
+                            NULL);
+        return g_object_ref_sink (sidebar);
+
+}
+        
 static void
 on_page3_previous_button_clicked(GtkWidget *widget,
                                  gpointer  *data)
@@ -290,7 +404,7 @@ on_file_activated(GtkWidget *widget, gpointer *data)
 	GtkFileChooser *chooser = GTK_FILE_CHOOSER(widget);
 
 	/* The user might have hit Ctrl-L and typed in a filename, and this
-	   happens when they press Enter. It also happens when they double
+	   happens when they press Enter. It g_object_newalso happens when they double
 	   click a file in the browser. */
 	gchar *fname = gtk_file_chooser_get_filename(chooser);
 	gtk_file_chooser_set_filename(chooser, fname);
@@ -386,7 +500,7 @@ static void
 on_page2_update_preview(GtkWidget *widget, 
                         gpointer *user_data)
 {
-          
+
 	GcrCertificateChooserDialog *self = GCR_CERTIFICATE_CHOOSER_DIALOG (user_data);
 	
         GError *err = NULL;
@@ -446,7 +560,7 @@ on_page1_update_preview(GtkWidget *widget, gpointer *user_data)
         
         gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
                            self->builder, "certificate-label")),
-                           "No certificate selected");
+                          "No certificate selected");
     
 	gtk_file_chooser_set_preview_widget_active(chooser, FALSE);
 
@@ -474,6 +588,91 @@ on_page1_update_preview(GtkWidget *widget, gpointer *user_data)
 	printf("Preview %s\n", filename);
 	g_free(filename);
 }
+
+static gboolean
+is_token_usable (GcrCertificateChooserDialog *self,
+                 GckSlot *slot,
+                 GckTokenInfo *token)
+{
+        GList *l;
+        if (!(token->flags & CKF_TOKEN_INITIALIZED)) {
+                return FALSE;
+        }
+        if ((token->flags & CKF_LOGIN_REQUIRED) &&
+            !(token->flags & CKF_USER_PIN_INITIALIZED)) {
+                return FALSE;
+        }
+
+        for (l = self->blacklist; l != NULL; l = g_list_next (l)) {
+                if (gck_slot_match (slot, l->data))
+                        return FALSE;
+        }
+
+        return TRUE;
+}
+
+static void
+on_initialized_registered (GObject *unused,
+                           GAsyncResult *result,
+                           gpointer user_data)
+{
+        GcrCertificateChooserDialog *self = GCR_CERTIFICATE_CHOOSER_DIALOG (user_data);
+        GList *slots, *s;
+        GList *modules, *m;
+        GError *error = NULL;
+        GckTokenInfo *token;
+        self->tokens = NULL;
+        printf("limitless");
+
+        modules = gck_modules_initialize_registered_finish (result, &error);
+        if (error != NULL) {
+                g_warning ("%s", error->message);
+                g_clear_error (&error);
+        }
+
+        for (m = modules; m != NULL; m = g_list_next (m)) {
+                slots = gck_module_get_slots (m->data, TRUE);
+                for (s = slots; s; s = g_list_next (s)) {
+                        token = gck_slot_get_token_info (s->data);
+                        if (token == NULL)
+                                continue;
+                        if (is_token_usable (self, s->data, token)) { 
+                               printf("the value is %s\n", token->label);
+                               self->tokens = g_list_append (self->tokens, token->label);
+                        }
+                        //gck_token_info_free (token);
+                }
+
+               // gck_list_unref_free (slots);
+        }
+
+        self->loaded = TRUE;
+        g_signal_emit (G_OBJECT (self), certificate_chooser_signals[SIGNAL_LOADED], 0);
+
+        gck_list_unref_free (modules);
+        g_object_unref (self);
+}
+static void 
+on_token_load(GObject *obj, gpointer *data)
+{
+       
+	GcrCertificateChooserDialog *self = GCR_CERTIFICATE_CHOOSER_DIALOG (obj);
+        GtkTreeIter iter;
+        GcrCertificateChooserSidebar *sidebar;
+        GList *l;
+
+        for(l = self->tokens; l != NULL; l = g_list_next(l)) {
+               gtk_list_store_append(self->store, &iter);
+               gtk_list_store_set(self->store, &iter,COLUMN_STRING, (gchar *)l->data, -1);
+        }
+        sidebar = gcr_certificate_chooser_sidebar_new();
+        gtk_tree_view_set_model(GTK_TREE_VIEW(sidebar->tree_view),GTK_TREE_MODEL(self->store));
+        gtk_container_add(GTK_CONTAINER(gtk_builder_get_object(self->builder, "page1-pkcs11")), GTK_WIDGET(sidebar));
+        gtk_widget_show_all(GTK_WIDGET(gtk_builder_get_object(self->builder, "page1-pkcs11")));        
+       
+}	
+
+
 static void
 gcr_certificate_chooser_dialog_constructed (GObject *obj)
 {
@@ -481,8 +680,10 @@ gcr_certificate_chooser_dialog_constructed (GObject *obj)
         GtkWidget *content;
         GError *error = NULL;
         G_OBJECT_CLASS (gcr_certificate_chooser_dialog_parent_class)->constructed (obj);
+        gck_modules_initialize_registered_async(NULL, on_initialized_registered,
+                                                g_object_ref(self));
 
-        if (!gtk_builder_add_from_file (self->builder, UIDIR "gcr-certificate-chooser-dialog.ui", &error))     {
+        if (!gtk_builder_add_from_file (self->builder, "/home/tyagi-prashant/temporarywork/gcr/ui/gcr-certificate-chooser-dialog.ui", &error))     {
                   g_warning ("couldn't load ui builder file: %s", error->message);
                   return;
           }
@@ -587,6 +788,7 @@ gcr_certificate_chooser_dialog_constructed (GObject *obj)
                          self->builder, "page3-prev-button")),
                          "clicked", G_CALLBACK (
                          on_page3_previous_button_clicked), self);
+        g_signal_connect(self, "token-loaded", G_CALLBACK(on_token_load), NULL);
     
        
 	gtk_widget_show_all(GTK_WIDGET (self));
@@ -596,7 +798,27 @@ gcr_certificate_chooser_dialog_constructed (GObject *obj)
 static void
 gcr_certificate_chooser_dialog_init (GcrCertificateChooserDialog *self)
 {
+        GError *error = NULL;
+        GckUriData *uri;
+        guint i;
+        self->loaded = FALSE;
+        self->blacklist = NULL;
+
+        for (i = 0; token_blacklist[i] != NULL; i++) {
+                uri = gck_uri_parse (token_blacklist[i], GCK_URI_FOR_TOKEN | GCK_URI_FOR_MODULE, &error);
+                if (uri == NULL) {
+                        g_warning ("couldn't parse pkcs11 blacklist uri: %s", error->message);
+                        g_clear_error (&error);
+                }
+                self->blacklist = g_list_prepend (self->blacklist, uri);
+        }
+
+
+
         self->builder = gtk_builder_new();       
+
+        self->store = gtk_list_store_new (N_COLUMNS,
+                                          G_TYPE_STRING);
         self->parser = gcr_parser_new();
         self->page1_viewer = gcr_viewer_new();
         self->page2_viewer = gcr_viewer_new();
@@ -621,6 +843,15 @@ gcr_certificate_chooser_dialog_class_init (GcrCertificateChooserDialogClass *kla
 
 	gobject_class->constructed = gcr_certificate_chooser_dialog_constructed;
 	gobject_class->finalize = gcr_certificate_chooser_dialog_finalize;
+        certificate_chooser_signals[SIGNAL_LOADED] =
+                           g_signal_new("token-loaded",
+                                        G_TYPE_FROM_CLASS (klass),
+                                        G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
+                                        G_STRUCT_OFFSET (GcrCertificateChooserDialogClass, token_loaded),
+                                        NULL, NULL,
+                                        g_cclosure_marshal_VOID__VOID,
+                                        G_TYPE_NONE, 0);
+
 }
 
 /**
