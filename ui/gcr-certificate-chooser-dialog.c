@@ -683,7 +683,7 @@ gcr_certificate_chooser_dialog_constructed (GObject *obj)
         gck_modules_initialize_registered_async(NULL, on_initialized_registered,
                                                 g_object_ref(self));
 
-        if (!gtk_builder_add_from_file (self->builder, "/home/tyagi-prashant/temporarywork/gcr/ui/gcr-certificate-chooser-dialog.ui", &error))     {
+        if (!gtk_builder_add_from_file (self->builder, UIDIR "gcr-certificate-chooser-dialog.ui", &error))     {
                   g_warning ("couldn't load ui builder file: %s", error->message);
                   return;
           }

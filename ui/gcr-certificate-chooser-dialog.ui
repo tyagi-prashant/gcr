@@ -167,11 +167,10 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="page1-pkcs11">
+                  <object class="GtkHBox" id="page1-pkcs11">
                     <property name="name">Choose from pkcs11 token</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">PKCS11</property>
                   </object>
                   <packing>
                     <property name="title">Choose from pkcs11 token</property>
@@ -218,11 +217,9 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="page2-pkcs11">
-                    <property name="name">Choose from pkcs11 token</property>
+                  <object class="GtkHBox" id="page2-pkcs11">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">PKCS11</property>
+                    <property name="can_focus">True</property>
                   </object>
                   <packing>
                     <property name="title">Choose from pkcs11 token</property>
