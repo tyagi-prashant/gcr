@@ -54,7 +54,7 @@ GcrCertificateChooserDialog * gcr_certificate_chooser_dialog_new    (GtkWindow *
 
 GcrCertificateChooserSidebar * gcr_certificate_chooser_sidebar_new    (void);
 
-GcrCertificateChooserPkcs11 * gcr_certificate_chooser_pkcs11_new    (GckSlot *slot, GckTokenInfo *info);
+GcrCertificateChooserPkcs11 * gcr_certificate_chooser_pkcs11_new    (GckSlot *slot);
 
 gboolean                gcr_certificate_chooser_dialog_run               (GcrCertificateChooserDialog *self);
 

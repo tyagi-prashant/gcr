@@ -637,13 +637,13 @@ on_initialized_registered (GObject *unused,
                         if (token == NULL)
                                 continue;
                         if (is_token_usable (self, s->data, token)) { 
-                               GcrCertificateChooserPkcs11 *data = gcr_certificate_chooser_pkcs11_new(s->data, token);
+                               GcrCertificateChooserPkcs11 *data = gcr_certificate_chooser_pkcs11_new(s->data);
                                self->tokens = g_list_append (self->tokens, data);
                         }
-                  //      gck_token_info_free (token);
+                        gck_token_info_free (token);
                 }
 
-               //gck_list_unref_free (slots);
+               gck_list_unref_free (slots);
         }
 
         self->loaded = TRUE;
@@ -688,7 +688,7 @@ gcr_certificate_chooser_dialog_constructed (GObject *obj)
         gck_modules_initialize_registered_async(NULL, on_initialized_registered,
                                                 g_object_ref(self));
 
-        if (!gtk_builder_add_from_file (self->builder, UIDIR "gcr-certificate-chooser-dialog.ui", &error))     {
+        if (!gtk_builder_add_from_file (self->builder, "/home/tyagi-prashant/temporarywork/gcr/ui/gcr-certificate-chooser-dialog.ui", &error))     {
                   g_warning ("couldn't load ui builder file: %s", error->message);
                   return;
           }
