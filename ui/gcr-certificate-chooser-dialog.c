@@ -75,7 +75,7 @@ enum {
 	SIGNAL_LOADED
 };
 
-static gint certificate_chooser_signals[SIGNAL_LOADED] = { 0 };
+static gint certificate_chooser_signals[SIGNAL_LOADED + 1] = { 0 };
 
 struct _GcrCertificateChooserDialog {
        GtkDialog parent;
@@ -640,7 +640,7 @@ on_initialized_registered (GObject *unused,
                                GcrCertificateChooserPkcs11 *data = gcr_certificate_chooser_pkcs11_new(s->data, token);
                                self->tokens = g_list_append (self->tokens, data);
                         }
-                        gck_token_info_free (token);
+                  //      gck_token_info_free (token);
                 }
 
                //gck_list_unref_free (slots);
