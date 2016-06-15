@@ -38,7 +38,12 @@ G_BEGIN_DECLS
 #define GCR_CERTIFICATE_CHOOSER_SIDEBAR(obj)         (G_TYPE_CHECK_INSTANCE_CAST ((obj), GCR_TYPE_CERTIFICATE_CHOOSER_SIDEBAR, GcrCertificateChooserSidebar))
 #define GCR_IS_CERTIFICATE_CHOOSER_SIDEBAR(obj)            (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GCR_TYPE_CERTIFICATE_CHOOSER_SIDEBAR))
 
+#define GCR_TYPE_CERTIFICATE_CHOOSER_PKCS11              (gcr_certificate_chooser_pkcs11_get_type ())
+#define GCR_CERTIFICATE_CHOOSER_PKCS11(obj)         (G_TYPE_CHECK_INSTANCE_CAST ((obj), GCR_TYPE_CERTIFICATE_CHOOSER_PKCS11, GcrCertificateChooserPkcs11))
+#define GCR_IS_CERTIFICATE_CHOOSER_PKCS11(obj)            (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GCR_TYPE_CERTIFICATE_CHOOSER_PKCS11))
+
 typedef struct _GcrCertificateChooserDialog GcrCertificateChooserDialog;
+typedef struct _GcrCertificateChooserPkcs11 GcrCertificateChooserPkcs11;
 typedef struct _GcrCertificateChooserSidebar GcrCertificateChooserSidebar;
 
 GType                   gcr_certificate_chooser_dialog_get_type     (void) G_GNUC_CONST;
@@ -48,6 +53,8 @@ GType                   gcr_certificate_chooser_sidebar_get_type     (void) G_GN
 GcrCertificateChooserDialog * gcr_certificate_chooser_dialog_new    (GtkWindow *parent);
 
 GcrCertificateChooserSidebar * gcr_certificate_chooser_sidebar_new    (void);
+
+GcrCertificateChooserPkcs11 * gcr_certificate_chooser_pkcs11_new    (GckSlot *slot, GckTokenInfo *info);
 
 gboolean                gcr_certificate_chooser_dialog_run               (GcrCertificateChooserDialog *self);
 
