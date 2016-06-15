@@ -26,6 +26,7 @@
 #include "gcr-dialog-util.h"
 #include "gcr-secure-entry-buffer.h"
 #include "gcr-certificate-chooser-dialog.h"
+#include "gcr-certificate-chooser-pkcs11.c"
 #include "gcr-viewer.h"
 #include "gcr-viewer-widget.h"
 #include "gcr-unlock-renderer.h"
@@ -604,7 +605,7 @@ is_token_usable (GcrCertificateChooserDialog *self,
         }
 
         for (l = self->blacklist; l != NULL; l = g_list_next (l)) {
-                if (gck_slot_match (slot, l->data))
+                if (gck_slot_match (slot, l->data)) 
                         return FALSE;
         }
 
@@ -622,7 +623,6 @@ on_initialized_registered (GObject *unused,
         GError *error = NULL;
         GckTokenInfo *token;
         self->tokens = NULL;
-        printf("limitless");
 
         modules = gck_modules_initialize_registered_finish (result, &error);
         if (error != NULL) {
@@ -637,13 +637,13 @@ on_initialized_registered (GObject *unused,
                         if (token == NULL)
                                 continue;
                         if (is_token_usable (self, s->data, token)) { 
-                               printf("the value is %s\n", token->label);
-                               self->tokens = g_list_append (self->tokens, token->label);
+                               GcrCertificateChooserPkcs11 *data = gcr_certificate_chooser_pkcs11_new(s->data, token);
+                               self->tokens = g_list_append (self->tokens, data);
                         }
-                        //gck_token_info_free (token);
+                        gck_token_info_free (token);
                 }
 
-               // gck_list_unref_free (slots);
+               //gck_list_unref_free (slots);
         }
 
         self->loaded = TRUE;
@@ -660,10 +660,15 @@ on_token_load(GObject *obj, gpointer *data)
         GtkTreeIter iter;
         GcrCertificateChooserSidebar *sidebar;
         GList *l;
-
+        GckTokenInfo *info;
+        GcrCertificateChooserPkcs11 *pkcs11;
         for(l = self->tokens; l != NULL; l = g_list_next(l)) {
                gtk_list_store_append(self->store, &iter);
-               gtk_list_store_set(self->store, &iter,COLUMN_STRING, (gchar *)l->data, -1);
+               pkcs11 = (GcrCertificateChooserPkcs11 *)l->data;
+               info = pkcs11->info;
+               gtk_list_store_set(self->store, &iter,COLUMN_STRING, (gchar *)info->label, -1);
+               gck_token_info_free (info);
+               g_object_unref (pkcs11);
         }
         sidebar = gcr_certificate_chooser_sidebar_new();
         gtk_tree_view_set_model(GTK_TREE_VIEW(sidebar->tree_view),GTK_TREE_MODEL(self->store));
@@ -788,7 +793,10 @@ gcr_certificate_chooser_dialog_constructed (GObject *obj)
                          self->builder, "page3-prev-button")),
                          "clicked", G_CALLBACK (
                          on_page3_previous_button_clicked), self);
-        g_signal_connect(self, "token-loaded", G_CALLBACK(on_token_load), NULL);
+ 
+        
+	g_signal_connect(self, "token-loaded",
+                         G_CALLBACK (on_token_load), self);
     
        
 	gtk_widget_show_all(GTK_WIDGET (self));
