@@ -12,6 +12,7 @@ BUILT_SOURCES += \
 	$(ui_BUILT_SOURCES)
 
 libgcr_ui_@GCR_MAJOR@_la_CFLAGS = \
+	-Werror -Wno-error=deprecated-declarations \
 	-DGCK_API_SUBJECT_TO_CHANGE \
 	-DGCR_API_SUBJECT_TO_CHANGE \
 	-DP11_KIT_API_SUBJECT_TO_CHANGE \
