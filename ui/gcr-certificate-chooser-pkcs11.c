@@ -28,18 +28,48 @@ typedef struct _GcrCertificateChooserPkcs11Class GcrCertificateChooserPkcs11Clas
 
 G_DEFINE_TYPE (GcrCertificateChooserPkcs11, gcr_certificate_chooser_pkcs11, GTK_TYPE_SCROLLED_WINDOW) ;
 
+static void
+on_object_type_render (GckObject *obj, GAsyncResult *result, gpointer data)
+{
+        GError *error = NULL;
+        gulong class;
+        GtkCellRenderer *cell = GTK_CELL_RENDERER (data);
+        GckAttributes *attributes = gck_object_get_finish (obj, result, &error);
+       if (error != NULL)
+                 printf("object error occur\n");
+      else {
+                if (gck_attributes_find_ulong (attributes, CKA_CLASS, &class) && class == CKO_PRIVATE_KEY) {
+                         g_object_set(cell, 
+                                      "visible", TRUE,
+                                      "text", "Private Key",
+                                       NULL);
+                        printf ("found private key\n");
+                 
+               } else { 
+                         g_object_set(cell, 
+                                      "visible", TRUE,
+                                      "text", "Certificate",
+                                       NULL);
+                         printf ("found certificate\n");
+              }
+        }
+}
+        
 static void 
-on_cell_renderer_icon (GtkTreeViewColumn *column,
+on_cell_renderer_object(GtkTreeViewColumn *column,
                        GtkCellRenderer *cell,
                        GtkTreeModel *model,
                        GtkTreeIter *iter,
                        gpointer user_data)
 {
 
+        printf ("int on_cell_renderer function\n");
         GckObject *object;
         guint n_size;
+        const gulong *attr_types = {attr_types};
         GcrCertificateChooserPkcs11 *self = GCR_CERTIFICATE_CHOOSER_PKCS11 (user_data);
         gtk_tree_model_get (model, iter, 0, &object, -1);
+        gck_object_get_async (object, attr_types, 0, self->cancellable, on_object_type_render, cell);
         
 
         
@@ -67,29 +97,20 @@ gcr_certificate_chooser_pkcs11_constructed (GObject *obj)
         col = gtk_tree_view_column_new ();
         
         cell = gtk_cell_renderer_text_new ();
-        gtk_tree_view_column_pack_start (col, cell, FALSE);
-        g_object_set (G_OBJECT (cell), 
-                      "xpad", 6,
-                       NULL);
-
-        cell = gtk_cell_renderer_pixbuf_new ();
         gtk_tree_view_column_pack_start (col, cell, TRUE);
+        g_object_set (G_OBJECT (cell), "editable", FALSE, NULL);
         gtk_tree_view_column_set_cell_data_func (col, cell,
-                                                 on_cell_renderer_icon,
+                                                 on_cell_renderer_object,
                                                  self, NULL);
  
-        cell = gtk_cell_renderer_text_new ();
-        gtk_tree_view_column_pack_start (col, cell, TRUE);
-        g_object_set (G_OBJECT (cell), 
-                      "xpad", 6,
-                        NULL);
         
-        gtk_tree_view_column_set_cell_data_func (col, cell,
-                                                 on_cell_renderer_text,
-                                                 self, NULL);
-        
+        g_object_set (cell,
+                      "ellipsize", PANGO_ELLIPSIZE_END,
+                      "ellipsize-set", TRUE,
+                       NULL);
          gtk_tree_view_append_column (GTK_TREE_VIEW(self->tree_view), col);
          gtk_tree_view_column_set_max_width (GTK_TREE_VIEW_COLUMN (col), 12);
+        gtk_tree_view_set_model (GTK_TREE_VIEW (self->tree_view), GTK_TREE_MODEL (self->store));
          gtk_container_add (GTK_CONTAINER (self), GTK_WIDGET (self->tree_view    ));
          gtk_widget_show (GTK_WIDGET (self->tree_view));
  }
@@ -127,7 +148,7 @@ on_objects_loaded (GckEnumerator *enumerator,
         printf("the length of objects is %d\n", g_list_length(self->objects));
         for (l = self->objects; l != NULL; l = g_list_next (l)) {
                  gtk_list_store_append (self->store, &iter);
-                 gtk_list_store_set (self->store, &iter, 0, (GckObject *)l->data, -1);
+                 gtk_list_store_set (self->store, &iter, OBJECT_TYPE, l->data, -1);
         }
         gtk_tree_view_set_model (GTK_TREE_VIEW (self->tree_view), GTK_TREE_MODEL (self->store));
 }
