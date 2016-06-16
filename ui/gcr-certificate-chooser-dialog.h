@@ -50,6 +50,8 @@ GType                   gcr_certificate_chooser_dialog_get_type     (void) G_GNU
 
 GType                   gcr_certificate_chooser_sidebar_get_type     (void) G_GNUC_CONST;
 
+GType                   gcr_certificate_chooser_pkcs11_get_type     (void) G_GNUC_CONST;
+
 GcrCertificateChooserDialog * gcr_certificate_chooser_dialog_new    (GtkWindow *parent);
 
 GcrCertificateChooserSidebar * gcr_certificate_chooser_sidebar_new    (void);
