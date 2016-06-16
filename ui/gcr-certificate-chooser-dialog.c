@@ -22,7 +22,6 @@
 #include "gcr/gcr-icons.h"
 #include "gcr/gcr-parser.h"
 #include "gcr/gcr.h"
-
 #include "gcr-dialog-util.h"
 #include "gcr-secure-entry-buffer.h"
 #include "gcr-certificate-chooser-dialog.h"

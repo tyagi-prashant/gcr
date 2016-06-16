@@ -29,12 +29,12 @@ typedef struct _GcrCertificateChooserPkcs11Class GcrCertificateChooserPkcs11Clas
 G_DEFINE_TYPE (GcrCertificateChooserPkcs11, gcr_certificate_chooser_pkcs11, GTK_TYPE_SCROLLED_WINDOW) ;
 
 static void
-on_object_type_render (GckObject *obj, GAsyncResult *result, gpointer data)
+on_object_type_render (GObject *obj, GAsyncResult *result, gpointer data)
 {
         GError *error = NULL;
         gulong class;
         GtkCellRenderer *cell = GTK_CELL_RENDERER (data);
-        GckAttributes *attributes = gck_object_get_finish (obj, result, &error);
+        GckAttributes *attributes = gck_object_get_finish (GCK_OBJECT(obj), result, &error);
        if (error != NULL)
                  printf("object error occur\n");
       else {
@@ -65,7 +65,7 @@ on_cell_renderer_object(GtkTreeViewColumn *column,
 
         printf ("int on_cell_renderer function\n");
         GckObject *object;
-        guint n_size;
+
         const gulong *attr_types = {attr_types};
         GcrCertificateChooserPkcs11 *self = GCR_CERTIFICATE_CHOOSER_PKCS11 (user_data);
         gtk_tree_model_get (model, iter, 0, &object, -1);
@@ -75,16 +75,6 @@ on_cell_renderer_object(GtkTreeViewColumn *column,
         
 }
 
-static void 
-on_cell_renderer_text (GtkTreeViewColumn *column,
-                       GtkCellRenderer *cell,
-                       GtkTreeModel *model,
-                       GtkTreeIter *iter,
-                       gpointer ucer_data)
-{
-
-        
-}
 static void
 gcr_certificate_chooser_pkcs11_constructed (GObject *obj)
 {
@@ -134,15 +124,15 @@ gcr_certificate_chooser_pkcs11_init (GcrCertificateChooserPkcs11 *self)
 }
 
 static void
-on_objects_loaded (GckEnumerator *enumerator,
+on_objects_loaded (GObject *enumerator,
                    GAsyncResult *result,
-                   gpointer *data)
+                   gpointer data)
 {
         GcrCertificateChooserPkcs11 *self = GCR_CERTIFICATE_CHOOSER_PKCS11(data);
         GError *error = NULL;
         GList *l;
         GtkTreeIter iter;
-        self->objects = gck_enumerator_next_finish (enumerator,
+        self->objects = gck_enumerator_next_finish (GCK_ENUMERATOR(enumerator),
                                                     result,
                                                      &error);
         printf("the length of objects is %d\n", g_list_length(self->objects));
@@ -154,9 +144,9 @@ on_objects_loaded (GckEnumerator *enumerator,
 }
 
 static void
-get_session (GckSlot *slot,
+get_session (GObject *slot,
              GAsyncResult *result,
-             gpointer *data)
+             gpointer data)
 {
         GError *error = NULL;
         GckEnumerator *enumerator;
@@ -181,14 +171,14 @@ GcrCertificateChooserPkcs11 *
 gcr_certificate_chooser_pkcs11_new (GckSlot *slot)
 {
         GcrCertificateChooserPkcs11 *self;
-        GTlsInteraction *interaction;
+       // GTlsInteraction *interaction;
         self = g_object_new (GCR_TYPE_CERTIFICATE_CHOOSER_PKCS11,
                              NULL);
         self->slot = slot;
         self->info = gck_slot_get_token_info (self->slot);
         gck_session_open_async (self->slot, 
                                 GCK_SESSION_READ_ONLY,
-                                interaction,
+                                NULL,
                                 self->cancellable,
                                 get_session,
                                 g_object_ref(self));
