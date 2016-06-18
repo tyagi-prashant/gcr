@@ -4,7 +4,7 @@
 #define GCR_CERTIFICATE_CHOOSER_PKCS11_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), GCR_TYPE_CERTIFICATE_CHOOSER_PKCS11, GcrCertificateChooserPkcs11Class))
 
 enum {
-        OBJECT_TYPE,
+        COLUMN_OBJECT,
         T_COLUMNS
 };
 
@@ -28,33 +28,6 @@ typedef struct _GcrCertificateChooserPkcs11Class GcrCertificateChooserPkcs11Clas
 
 G_DEFINE_TYPE (GcrCertificateChooserPkcs11, gcr_certificate_chooser_pkcs11, GTK_TYPE_SCROLLED_WINDOW) ;
 
-static void
-on_object_type_render (GObject *obj, GAsyncResult *result, gpointer data)
-{
-        GError *error = NULL;
-        gulong class;
-        GtkCellRenderer *cell = GTK_CELL_RENDERER (data);
-        GckAttributes *attributes = gck_object_get_finish (GCK_OBJECT(obj), result, &error);
-       if (error != NULL)
-                 printf("object error occur\n");
-      else {
-                if (gck_attributes_find_ulong (attributes, CKA_CLASS, &class) && class == CKO_PRIVATE_KEY) {
-                         g_object_set(cell, 
-                                      "visible", TRUE,
-                                      "text", "Private Key",
-                                       NULL);
-                        printf ("found private key\n");
-                 
-               } else { 
-                         g_object_set(cell, 
-                                      "visible", TRUE,
-                                      "text", "Certificate",
-                                       NULL);
-                         printf ("found certificate\n");
-              }
-        }
-}
-        
 static void 
 on_cell_renderer_object(GtkTreeViewColumn *column,
                        GtkCellRenderer *cell,
@@ -63,16 +36,35 @@ on_cell_renderer_object(GtkTreeViewColumn *column,
                        gpointer user_data)
 {
 
-        printf ("int on_cell_renderer function\n");
         GckObject *object;
-
-        const gulong *attr_types = {attr_types};
+        gulong class;
+        gchar *label;
+        GError *error = NULL;
         GcrCertificateChooserPkcs11 *self = GCR_CERTIFICATE_CHOOSER_PKCS11 (user_data);
-        gtk_tree_model_get (model, iter, 0, &object, -1);
-        gck_object_get_async (object, attr_types, 0, self->cancellable, on_object_type_render, cell);
-        
 
-        
+        gtk_tree_model_get (model, iter, 0, &object, -1);
+        GckAttributes *attributes = gck_object_get (object,
+                                                    self->cancellable,
+                                                    &error, CKA_CLASS,
+                                                    CKA_LABEL, GCK_INVALID);
+
+       if (error != NULL)
+                 printf("object error occur\n");
+       else {
+                 if (gck_attributes_find_ulong (attributes, CKA_CLASS, &class) && class == CKO_PRIVATE_KEY) {
+                          g_object_set(cell,
+                                      "visible", TRUE,
+                                      "text", "Private Key",
+                                      NULL);
+                 } else {
+                          if (gck_attributes_find_string (attributes, CKA_LABEL, &label)) {
+                                   g_object_set(cell,
+                                                "visible", TRUE,
+                                                "text", label,
+                                                NULL);
+                        }
+              }
+        }
 }
 
 static void
@@ -98,11 +90,10 @@ gcr_certificate_chooser_pkcs11_constructed (GObject *obj)
                       "ellipsize", PANGO_ELLIPSIZE_END,
                       "ellipsize-set", TRUE,
                        NULL);
-         gtk_tree_view_append_column (GTK_TREE_VIEW(self->tree_view), col);
-         gtk_tree_view_column_set_max_width (GTK_TREE_VIEW_COLUMN (col), 12);
-        gtk_tree_view_set_model (GTK_TREE_VIEW (self->tree_view), GTK_TREE_MODEL (self->store));
-         gtk_container_add (GTK_CONTAINER (self), GTK_WIDGET (self->tree_view    ));
-         gtk_widget_show (GTK_WIDGET (self->tree_view));
+        gtk_tree_view_append_column (GTK_TREE_VIEW(self->tree_view), col);
+        gtk_tree_view_column_set_max_width (GTK_TREE_VIEW_COLUMN (col), 12);
+        gtk_container_add (GTK_CONTAINER (self), GTK_WIDGET (self->tree_view));
+        gtk_widget_show (GTK_WIDGET (self->tree_view));
  }
 
 static void
@@ -135,10 +126,10 @@ on_objects_loaded (GObject *enumerator,
         self->objects = gck_enumerator_next_finish (GCK_ENUMERATOR(enumerator),
                                                     result,
                                                      &error);
-        printf("the length of objects is %d\n", g_list_length(self->objects));
+
         for (l = self->objects; l != NULL; l = g_list_next (l)) {
                  gtk_list_store_append (self->store, &iter);
-                 gtk_list_store_set (self->store, &iter, OBJECT_TYPE, l->data, -1);
+                 gtk_list_store_set (self->store, &iter, COLUMN_OBJECT, l->data, -1);
         }
         gtk_tree_view_set_model (GTK_TREE_VIEW (self->tree_view), GTK_TREE_MODEL (self->store));
 }
@@ -155,15 +146,15 @@ get_session (GObject *slot,
         self->session = gck_session_open_finish (result, &error);
        
         if (error != NULL)
-             printf("%s\n", error->message);
+                 printf("%s\n", error->message);
         else {
-             enumerator = gck_session_enumerate_objects (self->session, 
-                                                         match);
-             gck_enumerator_next_async (enumerator, 
-                                        -1,
-                                        self->cancellable,
-                                        on_objects_loaded,
-                                        g_object_ref (self));
+                 enumerator = gck_session_enumerate_objects (self->session,
+                                                             match);
+                 gck_enumerator_next_async (enumerator,
+                                            -1,
+                                            self->cancellable,
+                                            on_objects_loaded,
+                                            g_object_ref (self));
         }
 }
 
@@ -171,7 +162,6 @@ GcrCertificateChooserPkcs11 *
 gcr_certificate_chooser_pkcs11_new (GckSlot *slot)
 {
         GcrCertificateChooserPkcs11 *self;
-       // GTlsInteraction *interaction;
         self = g_object_new (GCR_TYPE_CERTIFICATE_CHOOSER_PKCS11,
                              NULL);
         self->slot = slot;
