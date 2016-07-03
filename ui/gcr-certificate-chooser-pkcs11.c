@@ -10,6 +10,7 @@ enum {
 
 struct _GcrCertificateChooserPkcs11 {
         GtkScrolledWindow parent;
+        GtkWidget *box;
         GckSlot *slot;
         GtkListStore *store;
         GckTokenInfo *info;
@@ -74,7 +75,7 @@ gcr_certificate_chooser_pkcs11_constructed (GObject *obj)
         GtkTreeViewColumn *col;
         GtkCellRenderer *cell;
         G_OBJECT_CLASS(gcr_certificate_chooser_pkcs11_parent_class)->constructed (obj) ;
-        
+
         self->tree_view = gtk_tree_view_new();
         col = gtk_tree_view_column_new ();
         
@@ -92,7 +93,9 @@ gcr_certificate_chooser_pkcs11_constructed (GObject *obj)
                        NULL);
         gtk_tree_view_append_column (GTK_TREE_VIEW(self->tree_view), col);
         gtk_tree_view_column_set_max_width (GTK_TREE_VIEW_COLUMN (col), 12);
-        gtk_container_add (GTK_CONTAINER (self), GTK_WIDGET (self->tree_view));
+        gtk_container_add (GTK_CONTAINER (self->box), GTK_WIDGET (self->tree_view));
+        gtk_container_add (GTK_CONTAINER (self), GTK_WIDGET (self->box));
+
         gtk_widget_show (GTK_WIDGET (self->tree_view));
  }
 
@@ -110,6 +113,7 @@ gcr_certificate_chooser_pkcs11_init (GcrCertificateChooserPkcs11 *self)
 {
 
         self->cancellable = NULL;
+        self->box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 4);
         self->store = gtk_list_store_new (T_COLUMNS, 
                                           GCK_TYPE_OBJECT);
 }
@@ -158,10 +162,18 @@ get_session (GObject *slot,
         }
 }
 
+static void
+on_login_button_clicked (GtkWidget *button,
+                         gpointer data)
+{
+
+}
+
 GcrCertificateChooserPkcs11 *
 gcr_certificate_chooser_pkcs11_new (GckSlot *slot)
 {
         GcrCertificateChooserPkcs11 *self;
+        GtkWidget *button;
         self = g_object_new (GCR_TYPE_CERTIFICATE_CHOOSER_PKCS11,
                              NULL);
         self->slot = slot;
@@ -172,6 +184,17 @@ gcr_certificate_chooser_pkcs11_new (GckSlot *slot)
                                 self->cancellable,
                                 get_session,
                                 g_object_ref(self));
+
+        if ((self->info)->flags & CKF_LOGIN_REQUIRED ) {
+
+                 button = gtk_button_new_with_label ("Click Here To See More!");
+                 gtk_container_add (GTK_CONTAINER (self->box), GTK_WIDGET (button));
+                 gtk_box_reorder_child (GTK_BOX (self->box), GTK_WIDGET (self->tree_view), 1);
+
+                  g_signal_connect (button, "clicked",
+                                   G_CALLBACK (on_login_button_clicked),
+                                   self);
+        }
 
         return g_object_ref_sink (self);
 }

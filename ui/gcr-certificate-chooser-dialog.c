@@ -182,9 +182,11 @@ on_tree_node_select (GtkTreeModel *model,
                  gck_session_logout (token->session,
                                      NULL,
                                      NULL);
+
                  gtk_container_remove (GTK_CONTAINER (gtk_builder_get_object(
                                        self->builder, "page1-pkcs11")),
                                        previous_child);
+
                  gtk_widget_destroy (previous_child);
         }
 
