@@ -1,4 +1,4 @@
-
+#include <string.h>
 #define GCR_CERTIFICATE_CHOOSER_PKCS11_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), GCR_TYPE_CERTIFICATE_CHOOSER_PKCS11, GcrCertificateChooserPkcs11Class))
 #define GCR_IS_CERTIFICATE_CHOOSER_PKCS11_CLASS(klass)        (G_TYPE_CHECK_CLASS_TYPE ((klass), GCR_TYPE_CERTIFICATE_CHOOSER_PKCS11))
 #define GCR_CERTIFICATE_CHOOSER_PKCS11_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), GCR_TYPE_CERTIFICATE_CHOOSER_PKCS11, GcrCertificateChooserPkcs11Class))
@@ -16,6 +16,7 @@ struct _GcrCertificateChooserPkcs11 {
         GckTokenInfo *info;
         GtkWidget *tree_view;
         gchar *uri;
+        GtkWidget *button;
         GCancellable *cancellable;
         GckSession *session;
         GList *objects;
@@ -95,6 +96,7 @@ gcr_certificate_chooser_pkcs11_constructed (GObject *obj)
         gtk_tree_view_column_set_max_width (GTK_TREE_VIEW_COLUMN (col), 12);
         gtk_container_add (GTK_CONTAINER (self->box), GTK_WIDGET (self->tree_view));
         gtk_container_add (GTK_CONTAINER (self), GTK_WIDGET (self->box));
+        gtk_tree_view_set_model (GTK_TREE_VIEW (self->tree_view), GTK_TREE_MODEL (self->store));
 
         gtk_widget_show (GTK_WIDGET (self->tree_view));
  }
@@ -135,7 +137,7 @@ on_objects_loaded (GObject *enumerator,
                  gtk_list_store_append (self->store, &iter);
                  gtk_list_store_set (self->store, &iter, COLUMN_OBJECT, l->data, -1);
         }
-        gtk_tree_view_set_model (GTK_TREE_VIEW (self->tree_view), GTK_TREE_MODEL (self->store));
+        //gtk_tree_view_set_model (GTK_TREE_VIEW (self->tree_view), GTK_TREE_MODEL (self->store));
 }
 
 static void
@@ -162,10 +164,77 @@ get_session (GObject *slot,
         }
 }
 
+static void 
+on_password_enter (GObject *session, 
+                   GAsyncResult *result, 
+                   gpointer data)
+{
+        GError *error = NULL;
+        GcrCertificateChooserPkcs11 *self = GCR_CERTIFICATE_CHOOSER_PKCS11(data);
+
+        if (gck_session_login_finish (self->session, result, &error)) {
+
+                 GckEnumerator *enumerator;
+                 GckAttributes *match = gck_attributes_new_empty (GCK_INVALID);
+ 
+                 gtk_widget_hide (GTK_WIDGET (self->button));
+                 gtk_list_store_clear (self->store);
+                 enumerator = gck_session_enumerate_objects (self->session,
+                                                             match);
+                 gck_enumerator_next_async (enumerator,
+                                            -1,
+                                            self->cancellable,
+                                            on_objects_loaded,
+                                            g_object_ref (self));
+        } else
+                 gtk_button_clicked (GTK_BUTTON (self->button));
+ 
+                                  
+        if (error != NULL)
+             printf ("error raised !\n");
+}
+        
 static void
 on_login_button_clicked (GtkWidget *button,
                          gpointer data)
 {
+        GcrPrompt *prompt;
+        GError *error = NULL;
+        const gchar *password;
+        gsize len;
+        GcrCertificateChooserPkcs11 *self = GCR_CERTIFICATE_CHOOSER_PKCS11(data);
+        
+        prompt = gcr_system_prompt_open (-1, NULL, &error);
+        if (error != NULL) {
+      
+                 g_warning ("couldn't open prompt: %s", error->message);
+                 g_error_free (error);
+                 return ;
+        }
+
+        gcr_prompt_set_title (GCR_PROMPT (prompt), "Login into the token");
+        gcr_prompt_set_message (GCR_PROMPT (prompt), "Please enter the password");
+        password = gcr_prompt_password_run (GCR_PROMPT (prompt), NULL, &error);
+       
+         if (error != NULL) {
+                g_warning ("couldn't prompt for password: %s", error->message);
+                g_error_free (error);
+                g_object_unref (prompt);
+                return;
+        }
+        if (password == NULL)
+                 return ;
+
+        len = strlen (password);
+        gck_session_login_async (self->session,
+                                 CKU_USER,
+                                 (guchar *)password,
+                                 len,
+                                 NULL,
+                                 on_password_enter,
+                                 self);
+
+        g_object_unref (prompt);
 
 }
 
@@ -173,7 +242,6 @@ GcrCertificateChooserPkcs11 *
 gcr_certificate_chooser_pkcs11_new (GckSlot *slot)
 {
         GcrCertificateChooserPkcs11 *self;
-        GtkWidget *button;
         self = g_object_new (GCR_TYPE_CERTIFICATE_CHOOSER_PKCS11,
                              NULL);
         self->slot = slot;
@@ -187,11 +255,11 @@ gcr_certificate_chooser_pkcs11_new (GckSlot *slot)
 
         if ((self->info)->flags & CKF_LOGIN_REQUIRED ) {
 
-                 button = gtk_button_new_with_label ("Click Here To See More!");
-                 gtk_container_add (GTK_CONTAINER (self->box), GTK_WIDGET (button));
+                 self->button = gtk_button_new_with_label ("Click Here To See More!");
+                 gtk_container_add (GTK_CONTAINER (self->box), GTK_WIDGET (self->button));
                  gtk_box_reorder_child (GTK_BOX (self->box), GTK_WIDGET (self->tree_view), 1);
 
-                  g_signal_connect (button, "clicked",
+                 g_signal_connect (self->button, "clicked",
                                    G_CALLBACK (on_login_button_clicked),
                                    self);
         }
