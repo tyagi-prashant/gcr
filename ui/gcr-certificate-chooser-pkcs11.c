@@ -8,10 +8,13 @@ enum {
         T_COLUMNS
 };
 
+static const char *page2 = "page2";
+
 struct _GcrCertificateChooserPkcs11 {
         GtkScrolledWindow parent;
         GtkWidget *box;
         GckSlot *slot;
+        char *current_page;
         GtkListStore *store;
         GckTokenInfo *info;
         GtkWidget *tree_view;
@@ -52,19 +55,33 @@ on_cell_renderer_object(GtkTreeViewColumn *column,
 
        if (error != NULL)
                  printf("object error occur\n");
-       else {
-                 if (gck_attributes_find_ulong (attributes, CKA_CLASS, &class) && class == CKO_PRIVATE_KEY) {
-                          g_object_set(cell,
-                                      "visible", TRUE,
-                                      "text", "Private Key",
-                                      NULL);
+       else {    
+                 if (self->current_page == page2) {
+
+                          if (gck_attributes_find_ulong (attributes, CKA_CLASS, &class) && class == CKO_PRIVATE_KEY) {
+
+                                   if (gck_attributes_find_string (attributes, CKA_LABEL, &label)) {
+
+                                            g_object_set(cell,
+                                                         "visible", TRUE,
+                                                         "text", label,
+                                                         NULL);
+                                   }
+
+                          }
+
                  } else {
-                          if (gck_attributes_find_string (attributes, CKA_LABEL, &label)) {
-                                   g_object_set(cell,
-                                                "visible", TRUE,
-                                                "text", label,
-                                                NULL);
-                        }
+
+                          if (gck_attributes_find_ulong (attributes, CKA_CLASS, &class) && class == CKO_CERTIFICATE) {
+                                   if (gck_attributes_find_string (attributes, CKA_LABEL, &label)) {
+                                            g_object_set(cell,
+                                                         "visible", TRUE,
+                                                         "text", label,
+                                                         NULL);
+                                   }
+
+                          }
+                                         
               }
         }
 }
@@ -239,11 +256,13 @@ on_login_button_clicked (GtkWidget *button,
 }
 
 GcrCertificateChooserPkcs11 *
-gcr_certificate_chooser_pkcs11_new (GckSlot *slot)
+gcr_certificate_chooser_pkcs11_new (GckSlot *slot, 
+                                    gchar *page)
 {
         GcrCertificateChooserPkcs11 *self;
         self = g_object_new (GCR_TYPE_CERTIFICATE_CHOOSER_PKCS11,
                              NULL);
+        self->current_page = page;
         self->slot = slot;
         self->info = gck_slot_get_token_info (self->slot);
         gck_session_open_async (self->slot, 
