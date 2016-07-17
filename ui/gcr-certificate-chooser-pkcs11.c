@@ -23,6 +23,7 @@ struct _GcrCertificateChooserPkcs11 {
         GCancellable *cancellable;
         GckSession *session;
         GList *objects;
+        GcrCollection *collection;
 };
 
 struct _GcrCertificateChooserPkcs11Class {
@@ -42,7 +43,6 @@ on_cell_renderer_object(GtkTreeViewColumn *column,
 {
 
         GckObject *object;
-        gulong class;
         gchar *label;
         GError *error = NULL;
         GcrCertificateChooserPkcs11 *self = GCR_CERTIFICATE_CHOOSER_PKCS11 (user_data);
@@ -56,33 +56,13 @@ on_cell_renderer_object(GtkTreeViewColumn *column,
        if (error != NULL)
                  printf("object error occur\n");
        else {    
-                 if (self->current_page == page2) {
+                 if (gck_attributes_find_string (attributes, CKA_LABEL, &label)) {
 
-                          if (gck_attributes_find_ulong (attributes, CKA_CLASS, &class) && class == CKO_PRIVATE_KEY) {
-
-                                   if (gck_attributes_find_string (attributes, CKA_LABEL, &label)) {
-
-                                            g_object_set(cell,
-                                                         "visible", TRUE,
-                                                         "text", label,
-                                                         NULL);
-                                   }
-
-                          }
-
-                 } else {
-
-                          if (gck_attributes_find_ulong (attributes, CKA_CLASS, &class) && class == CKO_CERTIFICATE) {
-                                   if (gck_attributes_find_string (attributes, CKA_LABEL, &label)) {
-                                            g_object_set(cell,
-                                                         "visible", TRUE,
-                                                         "text", label,
-                                                         NULL);
-                                   }
-
-                          }
-                                         
-              }
+                          g_object_set(cell,
+                                       "visible", TRUE,
+                                       "text", label,
+                                       NULL);
+                 }
         }
 }
 
@@ -96,6 +76,7 @@ gcr_certificate_chooser_pkcs11_constructed (GObject *obj)
 
         self->tree_view = gtk_tree_view_new();
         col = gtk_tree_view_column_new ();
+        gtk_tree_view_column_set_clickable (GTK_TREE_VIEW_COLUMN (col), FALSE);
         
         cell = gtk_cell_renderer_text_new ();
         gtk_tree_view_column_pack_start (col, cell, TRUE);
@@ -132,6 +113,7 @@ gcr_certificate_chooser_pkcs11_init (GcrCertificateChooserPkcs11 *self)
 {
 
         self->cancellable = NULL;
+        self->collection = gcr_simple_collection_new ();
         self->box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 4);
         self->store = gtk_list_store_new (T_COLUMNS, 
                                           GCK_TYPE_OBJECT);
@@ -146,15 +128,32 @@ on_objects_loaded (GObject *enumerator,
         GError *error = NULL;
         GList *l;
         GtkTreeIter iter;
+        gulong class, current_class_needed;
         self->objects = gck_enumerator_next_finish (GCK_ENUMERATOR(enumerator),
                                                     result,
-                                                     &error);
-
+                                                    &error);
+        if (self->current_page == page2)
+                 current_class_needed = CKO_PRIVATE_KEY;
+        else
+                 current_class_needed = CKO_CERTIFICATE;
         for (l = self->objects; l != NULL; l = g_list_next (l)) {
-                 gtk_list_store_append (self->store, &iter);
-                 gtk_list_store_set (self->store, &iter, COLUMN_OBJECT, l->data, -1);
+
+                 GckAttributes *attributes = gck_object_get (l->data,
+                                                             self->cancellable,
+                                                             &error, CKA_CLASS,
+                                                             CKA_LABEL, GCK_INVALID);
+
+                 if (!gcr_collection_contains (GCR_COLLECTION (self->collection), l->data)) {
+
+                          if (gck_attributes_find_ulong (attributes, CKA_CLASS, &class) && class == current_class_needed) {
+
+                                   gtk_list_store_append (self->store, &iter);
+                                   gtk_list_store_set (self->store, &iter, COLUMN_OBJECT, l->data, -1);
+                                   gcr_simple_collection_add (GCR_SIMPLE_COLLECTION(self->collection), l->data);
+                          }
+                 gck_attributes_unref (attributes);
+                 }
         }
-        //gtk_tree_view_set_model (GTK_TREE_VIEW (self->tree_view), GTK_TREE_MODEL (self->store));
 }
 
 static void
@@ -167,12 +166,13 @@ get_session (GObject *slot,
         GckAttributes *match = gck_attributes_new_empty (GCK_INVALID);
         GcrCertificateChooserPkcs11 *self = GCR_CERTIFICATE_CHOOSER_PKCS11(data);
         self->session = gck_session_open_finish (result, &error);
-       
+
         if (error != NULL)
                  printf("%s\n", error->message);
         else {
                  enumerator = gck_session_enumerate_objects (self->session,
-                                                             match);
+                                                             gck_attributes_ref_sink (match));
+                 gck_attributes_unref (match);
                  gck_enumerator_next_async (enumerator,
                                             -1,
                                             self->cancellable,
@@ -196,6 +196,8 @@ on_password_enter (GObject *session,
  
                  gtk_widget_hide (GTK_WIDGET (self->button));
                  gtk_list_store_clear (self->store);
+                 g_object_unref (self->collection);
+                 self->collection = gcr_simple_collection_new ();
                  enumerator = gck_session_enumerate_objects (self->session,
                                                              match);
                  gck_enumerator_next_async (enumerator,
