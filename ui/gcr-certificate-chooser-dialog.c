@@ -191,6 +191,7 @@ on_page1_tree_node_select (GtkTreeModel *model,
         }
 
         GcrCertificateChooserPkcs11 *data = gcr_certificate_chooser_pkcs11_new (slot, "page1");
+        data->builder = self->builder;
         gtk_paned_add2(GTK_PANED(gtk_builder_get_object(self->builder, "page1-pkcs11")), GTK_WIDGET(data));
         gtk_widget_show_all(GTK_WIDGET(gtk_builder_get_object(self->builder, "page1-pkcs11")));
 
@@ -796,6 +797,7 @@ gcr_certificate_chooser_dialog_constructed (GObject *obj)
                   g_warning ("couldn't load ui builder file: %s", error->message);
                   return;
           }
+        printf ("%s\n", UIDIR);
 
 	content = GTK_WIDGET(GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (self))));
 
@@ -824,6 +826,7 @@ gcr_certificate_chooser_dialog_constructed (GObject *obj)
 
         g_signal_connect(self->parser, "authenticate",
                          G_CALLBACK(on_parser_authenticate_for_data), self);
+
 
        /* Page1 Construction */
         page1_sidebar = gcr_certificate_chooser_sidebar_new();

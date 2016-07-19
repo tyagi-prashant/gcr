@@ -14,6 +14,7 @@ struct _GcrCertificateChooserPkcs11 {
         GtkScrolledWindow parent;
         GtkWidget *box;
         GckSlot *slot;
+        GtkBuilder *builder;
         char *current_page;
         GtkListStore *store;
         GckTokenInfo *info;
@@ -67,11 +68,40 @@ on_cell_renderer_object(GtkTreeViewColumn *column,
 }
 
 static void
+on_tree_node_select (GtkTreeModel *model,
+                     GtkTreePath *path,
+                     GtkTreeIter *iter,
+                     gpointer data)
+{
+        GckObject *object;
+        gchar *label;
+        GError *error = NULL;
+        GcrCertificateChooserPkcs11 *self = GCR_CERTIFICATE_CHOOSER_PKCS11 (data);
+
+        gtk_tree_model_get (model, iter, 0, &object, -1);
+        GckAttributes *attributes = gck_object_get (object,
+                                                    self->cancellable,
+                                                    &error, CKA_CLASS,
+                                                    CKA_LABEL, GCK_INVALID);
+        gck_attributes_find_string (attributes, CKA_LABEL, &label);
+        printf ("the selected path is %s\n", label);
+}
+
+static void
+on_tree_view_selection_changed (GtkTreeSelection *selection,
+                                gpointer data)
+{
+        GcrCertificateChooserPkcs11 *self = GCR_CERTIFICATE_CHOOSER_PKCS11(data);
+        gtk_tree_selection_selected_foreach (selection, on_tree_node_select, self);
+}
+
+static void
 gcr_certificate_chooser_pkcs11_constructed (GObject *obj)
 {
         GcrCertificateChooserPkcs11 *self = GCR_CERTIFICATE_CHOOSER_PKCS11(obj);
         GtkTreeViewColumn *col;
         GtkCellRenderer *cell;
+        GtkTreeSelection *tree_selection;
         G_OBJECT_CLASS(gcr_certificate_chooser_pkcs11_parent_class)->constructed (obj) ;
 
         self->tree_view = gtk_tree_view_new();
@@ -95,6 +125,10 @@ gcr_certificate_chooser_pkcs11_constructed (GObject *obj)
         gtk_container_add (GTK_CONTAINER (self->box), GTK_WIDGET (self->tree_view));
         gtk_container_add (GTK_CONTAINER (self), GTK_WIDGET (self->box));
         gtk_tree_view_set_model (GTK_TREE_VIEW (self->tree_view), GTK_TREE_MODEL (self->store));
+
+        tree_selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (self->tree_view));
+        gtk_tree_selection_set_mode (tree_selection, GTK_SELECTION_MULTIPLE);
+        g_signal_connect (tree_selection, "changed", G_CALLBACK (on_tree_view_selection_changed), self);
 
         gtk_widget_show (GTK_WIDGET (self->tree_view));
  }
