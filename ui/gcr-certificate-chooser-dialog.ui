@@ -25,6 +25,21 @@
     <property name="visible">False</property>
     <property name="can_default">True</property>
   </object>
+
+  <object class="GtkFileChooserWidget" id="page1-filechooser">
+    <property name="action">GTK_FILE_CHOOSER_ACTION_OPEN</property>
+    <property name="visible">True</property>
+    <property name="can_focus">True</property>
+    <property name="extra-widget">page1-next-button</property>
+    <property name="preview-widget-active">False</property>
+  </object>
+  <object class="GtkFileChooserWidget" id="page2-filechooser">
+    <property name="action">GTK_FILE_CHOOSER_ACTION_OPEN</property>
+    <property name="visible">True</property>
+    <property name="can_focus">True</property>
+    <property name="extra-widget">page1-next-button</property>
+    <property name="preview-widget-active">False</property>
+  </object>
   <object class="GtkHBox" id="next-preview-box">
     <property name="visible">True</property>
     <property name="border_width">6</property>
@@ -145,103 +160,15 @@
         <property name="visible">True</property>
         <property name="transition-type">GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT</property>
         <child>
-          <object class="GtkVBox" id="page1-box">
+          <object class="GtkHPaned" id="page1-box">
             <property name="can_focus">True</property>
             <property name="visible">True</property>
-            <child>
-              <object class="GtkStack" id="page1-stack">
-                <property name="can_focus">True</property>
-                <property name="visible">True</property>
-                <property name="transition-type">GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT</property>
-                <property name="transition-duration">1000</property>
-                <child>
-                  <object class="GtkFileChooserWidget" id="page1-filechooser">
-                    <property name="action">GTK_FILE_CHOOSER_ACTION_OPEN</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="extra-widget">page1-next-button</property>
-                    <property name="preview-widget-active">False</property>
-                  </object>
-                  <packing>
-                    <property name="title">Choose from file</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkHPaned" id="page1-pkcs11">
-                    <property name="name">Choose from pkcs11 token</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                  </object>
-                  <packing>
-                    <property name="title">Choose from pkcs11 token</property>
-                  </packing>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkStackSwitcher" id="page1-stack-switcher">
-                <property name="stack">page1-stack</property>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>                
-            </child> 
           </object> 
         </child>
         <child>
-          <object class="GtkVBox" id="page2-box">
+          <object class="GtkHPaned" id="page2-box">
             <property name="can_focus">True</property>
             <property name="visible">True</property>
-            <child>
-              <object class="GtkStack" id="page2-stack">
-                <property name="can_focus">True</property>
-                <property name="visible">True</property>
-                <property name="transition-type">GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT</property>
-                <property name="transition-duration">1000</property>
-                <child>
-                  <object class="GtkFileChooserWidget" id="page2-filechooser">
-                    <property name="action">GTK_FILE_CHOOSER_ACTION_OPEN</property>
-                    <property name="visible">True</property>
-                    <property name="extra-widget">next-preview-box</property>
-                    <property name="preview-widget-active">False</property>
-                  </object>
-                  <packing>
-                    <property name="title">Choose from file</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkHPaned" id="page2-pkcs11">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                  </object>
-                  <packing>
-                    <property name="title">Choose from pkcs11 token</property>
-                  </packing>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkStackSwitcher" id="page2-stack-switcher">
-                <property name="stack">page2-stack</property>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>                
-            </child> 
           </object> 
         </child>
         <child>
