@@ -84,7 +84,25 @@ on_tree_node_select (GtkTreeModel *model,
                                                     &error, CKA_CLASS,
                                                     CKA_LABEL, GCK_INVALID);
         gck_attributes_find_string (attributes, CKA_LABEL, &label);
-        printf ("the selected path is %s\n", label);
+        if (self->current_page != page2) {
+
+                 gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
+                                    self->builder, "certificate-label")),
+                                    label);
+                 gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
+                                    self->builder, "key-label")),
+                                    "No key selected yet");
+                 gtk_widget_set_sensitive (GTK_WIDGET (gtk_builder_get_object (
+                                           self->builder, "page1-next-button")), TRUE);
+        } else {
+               
+                 gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
+                                    self->builder, "key-label")),
+                                    "Key selected");
+                 gtk_widget_set_sensitive (GTK_WIDGET (gtk_builder_get_object (
+                                           self->builder, "page2-next-button")), TRUE);
+
+        }
 }
 
 static void
