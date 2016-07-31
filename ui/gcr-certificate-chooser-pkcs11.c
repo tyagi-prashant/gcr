@@ -21,6 +21,7 @@ struct _GcrCertificateChooserPkcs11 {
         GtkWidget *tree_view;
         gchar *uri;
         GtkWidget *entry;
+        GtkWidget *label;
         GCancellable *cancellable;
         GckSession *session;
         GList *objects;
@@ -82,10 +83,11 @@ on_tree_node_select (GtkTreeModel *model,
         GckAttributes *attributes = gck_object_get (object,
                                                     self->cancellable,
                                                     &error, CKA_CLASS,
-                                                    CKA_LABEL, GCK_INVALID);
+                                                    CKA_LABEL, CKA_ISSUER, GCK_INVALID);
         gck_attributes_find_string (attributes, CKA_LABEL, &label);
-        if (self->current_page != page2) {
 
+        if (self->current_page != page2) {
+            
                  gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
                                     self->builder, "certificate-label")),
                                     label);
@@ -113,6 +115,30 @@ on_tree_view_selection_changed (GtkTreeSelection *selection,
         gtk_tree_selection_selected_foreach (selection, on_tree_node_select, self);
 }
 
+static void 
+on_cell_renderer_pixbuf(GtkTreeViewColumn *column,
+               GtkCellRenderer *cell,
+               GtkTreeModel *model,
+               GtkTreeIter *iter,
+               gpointer user_data)
+{
+        GcrCertificateChooserPkcs11 *self = GCR_CERTIFICATE_CHOOSER_PKCS11(user_data);
+        if (self->current_page != page2) {
+
+                 g_object_set(cell,
+                              "visible", TRUE,
+                              "gicon", g_themed_icon_new(GCR_ICON_CERTIFICATE),
+                              NULL);
+        } else {
+                 g_object_set(cell,
+                              "visible", TRUE,
+                              "gicon", g_themed_icon_new(GCR_ICON_KEY),
+                              NULL);
+        }
+
+                 
+}
+
 static void
 gcr_certificate_chooser_pkcs11_constructed (GObject *obj)
 {
@@ -125,7 +151,18 @@ gcr_certificate_chooser_pkcs11_constructed (GObject *obj)
         self->tree_view = gtk_tree_view_new();
         col = gtk_tree_view_column_new ();
         gtk_tree_view_column_set_clickable (GTK_TREE_VIEW_COLUMN (col), FALSE);
+
+        cell = gtk_cell_renderer_text_new ();
+	gtk_tree_view_column_pack_start (col, cell, FALSE);
+	g_object_set (cell,
+	              "xpad", 6,
+	              NULL);
         
+        cell = gtk_cell_renderer_pixbuf_new ();
+	gtk_tree_view_column_pack_start (col, cell, FALSE);
+	gtk_tree_view_column_set_cell_data_func (col, cell,
+	                                         on_cell_renderer_pixbuf,
+	                                         self, NULL);
         cell = gtk_cell_renderer_text_new ();
         gtk_tree_view_column_pack_start (col, cell, TRUE);
         g_object_set (G_OBJECT (cell), "editable", FALSE, NULL);
@@ -167,6 +204,7 @@ gcr_certificate_chooser_pkcs11_init (GcrCertificateChooserPkcs11 *self)
         self->cancellable = NULL;
         self->collection = gcr_simple_collection_new ();
         self->box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 4);
+        self->label = gtk_label_new ("Enter Pin");
         self->store = gtk_list_store_new (T_COLUMNS, 
                                           GCK_TYPE_OBJECT);
 }
@@ -193,7 +231,7 @@ on_objects_loaded (GObject *enumerator,
                  GckAttributes *attributes = gck_object_get (l->data,
                                                              self->cancellable,
                                                              &error, CKA_CLASS,
-                                                             CKA_LABEL, GCK_INVALID);
+                                                             CKA_LABEL, CKA_ISSUER,GCK_INVALID);
 
                  if (!gcr_collection_contains (GCR_COLLECTION (self->collection), l->data)) {
 
@@ -248,6 +286,7 @@ on_password_verify (GObject *session,
                  GckAttributes *match = gck_attributes_new_empty (GCK_INVALID);
  
                  gtk_widget_destroy (GTK_WIDGET (self->entry));
+                 gtk_widget_destroy (GTK_WIDGET (self->label));
                  gtk_list_store_clear (self->store);
                  g_object_unref (self->collection);
                  self->collection = gcr_simple_collection_new ();
@@ -259,12 +298,17 @@ on_password_verify (GObject *session,
                                             on_objects_loaded,
                                             g_object_ref (self));
         }
- 
-                                  
+        
         if (error != NULL) {
-             printf ("error raised !\n");
-             gtk_widget_destroy (GTK_WIDGET (self->entry));
-        }
+
+                 if (!g_strcmp0 (error->message, "The password or PIN is incorrect"))
+                           gtk_label_set_text (GTK_LABEL (self->label), "The password or PIN is incorrect");
+                 else {
+
+                          gtk_widget_destroy (GTK_WIDGET (self->entry));         
+                          gtk_widget_destroy (GTK_WIDGET (self->label));
+                 }
+        }         
 }
 
 static void
@@ -294,8 +338,9 @@ on_login_button_clicked (GtkWidget *widget,
         self->entry = gtk_entry_new ();
         gtk_entry_set_max_length (GTK_ENTRY (self->entry), 50);
         gtk_entry_set_visibility (GTK_ENTRY (self->entry), FALSE);
+        gtk_container_add (GTK_CONTAINER (self->box), GTK_WIDGET (self->label));
         gtk_container_add (GTK_CONTAINER (self->box), GTK_WIDGET (self->entry));
-        gtk_box_reorder_child (GTK_BOX (self->box), GTK_WIDGET (self->tree_view), 1);
+        gtk_box_reorder_child (GTK_BOX (self->box), GTK_WIDGET (self->tree_view), 2);
         g_signal_connect (self->entry, "activate",
 		      G_CALLBACK (on_password_enter),
 		      self);

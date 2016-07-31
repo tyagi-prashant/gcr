@@ -159,7 +159,7 @@
             <property name="halign">GTK_ALIGN_END</property>
             <property name="valign">GTK_ALIGN_END</property>
             <property name="sensitive">FALSE</property>
-            <property name="label" translatable="yes">next2</property>
+            <property name="label" translatable="yes">next</property>
             <property name="visible">FALSE</property>
           </object>
         </child>
@@ -201,7 +201,7 @@
               </object>
             </child>
             <child>
-              <object class="GtkButton" id="page3-prev-button">
+              <object class="GtkButton" id="choose-again-button">
                 <property name="visible">True</property>
                 <property name="halign">GTK_ALIGN_START</property>
                 <property name="valign">GTK_ALIGN_START</property>
