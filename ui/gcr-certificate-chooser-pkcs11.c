@@ -75,25 +75,55 @@ on_tree_node_select (GtkTreeModel *model,
                      gpointer data)
 {
         GckObject *object;
-        gchar *label;
+        gchar *cert_label, *key_label;
+        gulong class;
         GError *error = NULL;
+        GList *l;
+        GckAttributes *cert_attributes, *key_attributes;
+        const GckAttribute *cert_attribute, *key_attribute;
         GcrCertificateChooserPkcs11 *self = GCR_CERTIFICATE_CHOOSER_PKCS11 (data);
 
         gtk_tree_model_get (model, iter, 0, &object, -1);
-        GckAttributes *attributes = gck_object_get (object,
-                                                    self->cancellable,
-                                                    &error, CKA_CLASS,
-                                                    CKA_LABEL, CKA_ISSUER, GCK_INVALID);
-        gck_attributes_find_string (attributes, CKA_LABEL, &label);
 
         if (self->current_page != page2) {
-            
-                 gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
-                                    self->builder, "certificate-label")),
-                                    label);
+
+                 cert_attributes = gck_object_get (object,
+                                                   self->cancellable,
+                                                   &error, CKA_CLASS,
+                                                   CKA_LABEL, CKA_ISSUER,
+                                                   CKA_ID,GCK_INVALID);
                  gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
                                     self->builder, "key-label")),
                                     "No key selected yet");
+                 cert_attribute = gck_attributes_find (cert_attributes, CKA_ID);
+                 gck_attributes_find_string (cert_attributes, CKA_LABEL, &cert_label);
+
+                 for (l = self->objects; l != NULL; l = g_list_next (l)) {
+
+                          key_attributes = gck_object_get (l->data,
+                                                           self->cancellable,
+                                                           &error, CKA_CLASS,
+                                                           CKA_LABEL, CKA_ID,
+                                                           GCK_INVALID);
+                          gck_attributes_find_ulong (key_attributes, CKA_CLASS, &class);
+
+                          if (class == CKO_PRIVATE_KEY) {
+
+                                   gck_attributes_find_string (key_attributes, CKA_LABEL, &key_label);
+                                   key_attribute = gck_attributes_find (key_attributes, CKA_ID);
+                                   if (gck_attribute_equal (key_attribute, cert_attribute) && !(g_strcmp0 (cert_label, key_label))) {
+
+                                            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
+                                                                         self->builder, "key-label")),
+                                                                         "Key selected");
+                                   }
+                          }
+                 }
+
+                 gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
+                                    self->builder, "certificate-label")),
+                                    cert_label);
+
                  gtk_widget_set_sensitive (GTK_WIDGET (gtk_builder_get_object (
                                            self->builder, "page1-next-button")), TRUE);
         } else {

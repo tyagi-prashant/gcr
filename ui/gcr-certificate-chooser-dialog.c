@@ -439,13 +439,8 @@ on_next_button_clicked(GtkWidget *widget, gpointer *data)
        gtk_widget_set_visible(GTK_WIDGET(gtk_builder_get_object(
                               self->builder, "page2-next-button")),TRUE);
 
-       if (self->is_key_choosen) {
+       if (!g_strcmp0 (gtk_label_get_label (GTK_LABEL (gtk_builder_get_object (self->builder, "key-label"))), "Key selected")) {
 
-                 self->key_uri = fname;
-                 gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(
-                                               gtk_builder_get_object(
-                                               self->builder, "page2-filechooser")),
-                                               fname);
                   gtk_button_clicked(GTK_BUTTON(gtk_builder_get_object(
                                      self->builder, "page2-next-button")));
        }
@@ -787,33 +782,7 @@ on_initialized_registered (GObject *unused,
         gck_list_unref_free (modules);
         g_object_unref (self);
 }
-/*
-static void 
-on_token_load(GObject *obj, gpointer *data)
-{
-       
-	GcrCertificateChooserDialog *self = GCR_CERTIFICATE_CHOOSER_DIALOG (obj);
-        GtkTreeIter iter;
-        GcrCertificateChooserSidebar *sidebar;
-        GList *l;
-        GckTokenInfo *info;
-        GcrCertificateChooserPkcs11 *pkcs11;
-        for(l = self->slots; l != NULL; l = g_list_next(l)) {
-               gtk_list_store_append(self->store, &iter);
-               pkcs11 = (GcrCertificateChooserPkcs11 *)l->data;
-               info = pkcs11->info;
-               gtk_list_store_set(self->store, &iter,COLUMN_STRING, (gchar *)info->label, -1);
-               gck_token_info_free (info);
-               g_object_unref (pkcs11);
-        }
-        sidebar = gcr_certificate_chooser_sidebar_new();
-        gtk_tree_view_set_model(GTK_TREE_VIEW(sidebar->tree_view),GTK_TREE_MODEL(self->store));
-        gtk_container_add(GTK_CONTAINER(gtk_builder_get_object(self->builder, "page1-pkcs11")), GTK_WIDGET(sidebar));
-        gtk_widget_show_all(GTK_WIDGET(gtk_builder_get_object(self->builder, "page1-pkcs11")));        
-       
-}	
 
-*/
 static void
 gcr_certificate_chooser_dialog_constructed (GObject *obj)
 {
