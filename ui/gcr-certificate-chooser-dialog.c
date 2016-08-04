@@ -67,8 +67,6 @@
 #define GCR_IS_CERTIFICATE_CHOOSER_SIDEBAR_CLASS(klass)        (G_TYPE_CHECK_CLASS_TYPE ((klass), GCR_TYPE_CERTIFICATE_CHOOSER_SIDEBAR))
 #define GCR_CERTIFICATE_CHOOSER_SIDEBAR_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), GCR_TYPE_CERTIFICATE_CHOOSER_SIDEBAR, GcrCertificateChooserSidebarClass))
 
-
-
 enum {
 	TOKEN_UPDATE,
 	TOKEN_ADDED
@@ -133,11 +131,9 @@ static const char *no_key = "No key selected yet";
 static const char *no_certificate = "No certificate selected yet";
 
 enum {
-        //ROW_TYPE,
         TOKEN_LABEL
 };
         
-
 enum {
         ROW_TYPE,
         COLUMN_SLOT,
@@ -160,10 +156,10 @@ get_token_label (GtkTreeViewColumn *column,
                  GtkTreeIter *iter,
                  gpointer user_data)
 {
-
         GckSlot *slot;
         gchar *label;
         GckTokenInfo *info;
+
         gtk_tree_model_get (model, iter, ROW_TYPE, &label, COLUMN_SLOT, &slot, -1);
         if (!slot) {
 
@@ -172,12 +168,10 @@ get_token_label (GtkTreeViewColumn *column,
                               "text", file_system,
                               NULL);
         } else {
- 
-		//          gtk_tree_model_get (model, iter, COLUMN_SLOT, &slot, -1);
-        
                  if (slot == NULL)
                        return ;
                  info = gck_slot_get_token_info (slot);
+
                  g_object_set(cell, 
                               "visible", TRUE,
                               "text", info->label,
@@ -199,30 +193,28 @@ on_page1_tree_node_select (GtkTreeModel *model,
         GcrCertificateChooserPkcs11 *token;
 
         gtk_tree_model_get (model, iter, ROW_TYPE, &label, COLUMN_SLOT, &slot, -1);
+
         gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
                            self->builder, "key-label")),
                            no_key);
-        
+
         gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
                            self->builder, "certificate-label")),
                            no_certificate);
-       
+
         previous_child =  gtk_paned_get_child2(GTK_PANED(gtk_builder_get_object(
                                                self->builder, "page1-box")));
-        
 
         if (previous_child != NULL) {
-
                  if (!GTK_IS_FILE_CHOOSER (previous_child)) {
-
-                          
                           token = GCR_CERTIFICATE_CHOOSER_PKCS11 (previous_child);
+
                           gck_session_logout (token->session,
                                               NULL,
                                               NULL);
+
                           gtk_widget_destroy (previous_child);
                  } else {
-                 
                           gtk_container_remove (GTK_CONTAINER (gtk_builder_get_object(
                                                 self->builder, "page1-box")),
                                                 previous_child);
@@ -230,7 +222,6 @@ on_page1_tree_node_select (GtkTreeModel *model,
         }
 
         if (!slot) {
-        
                 gtk_paned_pack2(GTK_PANED(gtk_builder_get_object(self->builder, "page1-box")), 
                                 GTK_WIDGET (gtk_builder_get_object (self->builder, "page1-filechooser")),
                                 FALSE, FALSE);
@@ -238,6 +229,7 @@ on_page1_tree_node_select (GtkTreeModel *model,
 
                  GcrCertificateChooserPkcs11 *data = gcr_certificate_chooser_pkcs11_new (slot, "page1");
                  data->builder = self->builder;
+
                  gtk_paned_add2(GTK_PANED(gtk_builder_get_object(self->builder, "page1-box")), GTK_WIDGET(data));
                  gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(self->builder, "page1-next-button")), FALSE);
                  gtk_widget_show_all(GTK_WIDGET(gtk_builder_get_object(self->builder, "page1-box")));
@@ -268,6 +260,7 @@ on_page2_tree_node_select (GtkTreeModel *model,
         GcrCertificateChooserPkcs11 *token;
 
         gtk_tree_model_get (model, iter, ROW_TYPE, &label, COLUMN_SLOT, &slot, -1);
+
         gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
                            self->builder, "key-label")),
                            no_key);
@@ -276,17 +269,15 @@ on_page2_tree_node_select (GtkTreeModel *model,
                                                self->builder, "page2-box")));
 
         if (previous_child != NULL) {
-
                  if (!GTK_IS_FILE_CHOOSER (previous_child)) {
-
-                          
                           token = GCR_CERTIFICATE_CHOOSER_PKCS11 (previous_child);
+
                           gck_session_logout (token->session,
                                               NULL,
                                               NULL);
+
                           gtk_widget_destroy (previous_child);
                  } else {
-                 
                           gtk_container_remove (GTK_CONTAINER (gtk_builder_get_object(
                                                 self->builder, "page2-box")),
                                                 previous_child);
@@ -294,8 +285,7 @@ on_page2_tree_node_select (GtkTreeModel *model,
         }
 
         if (!slot) {
-        
-                gtk_paned_pack2(GTK_PANED(gtk_builder_get_object(self->builder, "page2-box")), 
+                gtk_paned_pack2(GTK_PANED(gtk_builder_get_object(self->builder, "page2-box")),
                                 GTK_WIDGET (gtk_builder_get_object (self->builder, "page2-filechooser")),
                                 FALSE, FALSE);
         } else {
@@ -325,7 +315,7 @@ gcr_certificate_chooser_sidebar_constructed (GObject *obj)
         GtkCellRenderer *cell;
 
         G_OBJECT_CLASS (gcr_certificate_chooser_sidebar_parent_class)->constructed (obj);
-        //gtk_widget_size_request (GTK_WIDGET (self), 250, -1);
+
         self->tree_view = gtk_tree_view_new();
         col = gtk_tree_view_column_new ();
 
@@ -346,7 +336,7 @@ gcr_certificate_chooser_sidebar_constructed (GObject *obj)
         gtk_container_add (GTK_CONTAINER (self), GTK_WIDGET (self->tree_view));
         gtk_widget_show (GTK_WIDGET (self->tree_view));
 }
-	            	            
+
 static void
 gcr_certificate_chooser_sidebar_class_init(GcrCertificateChooserSidebarClass *klass)
 {
@@ -363,42 +353,45 @@ gcr_certificate_chooser_sidebar_new ()
         GcrCertificateChooserSidebar *sidebar;
         sidebar = g_object_new(GCR_TYPE_CERTIFICATE_CHOOSER_SIDEBAR,
                             NULL);
+
         return g_object_ref_sink (sidebar);
 
 }
-        
+
 static void
 on_page3_choose_again_button_clicked(GtkWidget *widget,
                                  gpointer  *data)
 {
-       
        GcrCertificateChooserDialog *self = GCR_CERTIFICATE_CHOOSER_DIALOG (data);
-       printf ("asdfasdf");
        gtk_window_set_title(GTK_WINDOW(self), "Choose Certificate");
 
        gtk_stack_set_visible_child(GTK_STACK(gtk_builder_get_object(
                                    self->builder, "content-area")),
                                    GTK_WIDGET(gtk_builder_get_object(
                                    self->builder, "page1-box")));
+
        self->is_certificate_choosen = FALSE;
        self->is_key_choosen = FALSE;
        self->key_uri = NULL;
        self->certificate_uri = NULL;
+
        gtk_tree_view_set_cursor (GTK_TREE_VIEW (self->page1_sidebar->tree_view), gtk_tree_path_new_from_string("0"), NULL, FALSE);
        gtk_tree_view_set_cursor (GTK_TREE_VIEW (self->page2_sidebar->tree_view), gtk_tree_path_new_from_string("0"), NULL, FALSE);
+
        gtk_widget_set_visible (GTK_WIDGET (gtk_builder_get_object (self->builder, "page1-next-button")), TRUE);
-       gtk_widget_set_sensitive (GTK_WIDGET (gtk_builder_get_object (self->builder, "page1-next-button")), FALSE);       
+       gtk_widget_set_sensitive (GTK_WIDGET (gtk_builder_get_object (self->builder, "page1-next-button")), FALSE);
+
        gtk_widget_set_visible (GTK_WIDGET (gtk_builder_get_object (self->builder, "page2-next-button")), FALSE);
-       gtk_widget_set_sensitive (GTK_WIDGET (gtk_builder_get_object (self->builder, "page2-next-button")), FALSE);       
+       gtk_widget_set_sensitive (GTK_WIDGET (gtk_builder_get_object (self->builder, "page2-next-button")), FALSE);
+
        gtk_label_set_text (GTK_LABEL (gtk_builder_get_object (self->builder, "key-label")), no_key);
 
 }
 
-static void 
+static void
 on_page2_next_button_clicked(GtkWidget *widget,
                              gpointer *data)
 {
-      
        GcrCertificateChooserDialog *self = GCR_CERTIFICATE_CHOOSER_DIALOG (data);
        gtk_window_set_title(GTK_WINDOW(self), "Confirm");
 
@@ -408,10 +401,8 @@ on_page2_next_button_clicked(GtkWidget *widget,
                                    self->builder, "page3-box")));
 
        gtk_widget_set_visible (GTK_WIDGET (gtk_builder_get_object (self->builder, "page2-next-button")), FALSE);
-       printf("The key uri is %s\n",self->key_uri);
-       
 }
-               
+
 static void
 on_next_button_clicked(GtkWidget *widget, gpointer *data)
 {
@@ -440,12 +431,10 @@ on_next_button_clicked(GtkWidget *widget, gpointer *data)
                               self->builder, "page2-next-button")),TRUE);
 
        if (!g_strcmp0 (gtk_label_get_label (GTK_LABEL (gtk_builder_get_object (self->builder, "key-label"))), "Key selected")) {
-
                   gtk_button_clicked(GTK_BUTTON(gtk_builder_get_object(
                                      self->builder, "page2-next-button")));
        }
 
-       printf("next-button %s\n", fname);
 }
 
 static void
@@ -454,9 +443,9 @@ on_default_button_clicked(GtkWidget *widget, gpointer *data)
         GcrCertificateChooserDialog *self = GCR_CERTIFICATE_CHOOSER_DIALOG (data);
         GtkFileChooserWidget *chooser;
 
-        if (!self->is_certificate_choosen) {        
+        if (!self->is_certificate_choosen) {
 	         chooser = GTK_FILE_CHOOSER_WIDGET(gtk_builder_get_object(
-                                                   self->builder, 
+                                                   self->builder,
                                                    "page1-filechooser"));
         } else {
 	         chooser = GTK_FILE_CHOOSER_WIDGET(gtk_builder_get_object(
@@ -465,7 +454,6 @@ on_default_button_clicked(GtkWidget *widget, gpointer *data)
         }
 
         gchar *fname = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER (chooser));
-        printf("default-button %s\n", fname);
 
         if (g_file_test(fname, G_FILE_TEST_IS_DIR)) {
 	        gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (chooser), fname);
@@ -483,25 +471,24 @@ on_default_button_clicked(GtkWidget *widget, gpointer *data)
 static void
 on_parser_parsed_item(GcrParser *parser,
                       gpointer  *data)
-{        GcrCertificateChooserDialog *self = GCR_CERTIFICATE_CHOOSER_DIALOG (data); 
+{        GcrCertificateChooserDialog *self = GCR_CERTIFICATE_CHOOSER_DIALOG (data);
          GckAttributes *attributes;
          char *filename;
          gulong class;
          gchar *markup;
-         printf ("in the parsed function/n");
          attributes = gcr_parser_get_parsed_attributes(parser);
-     
+
          if (!self->is_certificate_choosen) {
+
                  filename = gtk_file_chooser_get_preview_filename(
                                     GTK_FILE_CHOOSER(gtk_builder_get_object(
                                     self->builder, "page1-filechooser")));
-             
-                 if (self->certificate_uri && g_strcmp0(self->certificate_uri, filename) != 0) {
 
+                 if (self->certificate_uri && g_strcmp0(self->certificate_uri, filename) != 0) {
                         g_free(self->certificate_uri);
 		        self->certificate_uri = NULL;
 	         }
-        
+
                 if (gck_attributes_find_ulong (attributes, CKA_CLASS, &class) && class == CKO_CERTIFICATE) {
 		// XXX: Get subject, issuer and expiry and use gtk_label_set_markup to show them nicely
 		//gtk_label_set_text(GTK_LABEL(self->cert_label), gcr_parser_get_parsed_label(parser));
@@ -518,8 +505,7 @@ on_parser_parsed_item(GcrParser *parser,
 	                          gtk_button_clicked(GTK_BUTTON(gtk_builder_get_object(
                                                      self->builder,
                                                      "page1-next-button")));
-                       } else 
-                             printf("not set\n");
+                       }
                  }
         }
 
@@ -529,9 +515,8 @@ on_parser_parsed_item(GcrParser *parser,
 	               gtk_button_clicked(GTK_BUTTON(gtk_builder_get_object(
                                           self->builder,
                                           "page2-next-button")));
-             } else 
-                    printf("not set\n");
-            
+             }
+
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
                                self->builder, "key-label")),
                                "Key selected");
@@ -539,9 +524,7 @@ on_parser_parsed_item(GcrParser *parser,
             gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(
                                      self->builder, "page2-next-button")), TRUE);
         }
-
-     
-}        
+}
 
 static void
 on_file_activated(GtkWidget *widget, gpointer *data)
@@ -553,7 +536,7 @@ on_file_activated(GtkWidget *widget, gpointer *data)
 	   click a file in the browser. */
 	gchar *fname = gtk_file_chooser_get_filename(chooser);
 	gtk_file_chooser_set_filename(chooser, fname);
-	printf("fname chosen: %s\n", fname);
+
 	g_free(fname);
 
 	/* if Next button activated, then behave as if it's pressed */
@@ -578,6 +561,7 @@ on_unlock_renderer_clicked(GtkEntry *entry,
         }
 
         gcr_parser_add_password(self->parser, gtk_entry_get_text (GTK_ENTRY (entry)));
+
         if (gcr_parser_parse_bytes (self->parser, self->data, &error)) {
 
                 gtk_widget_destroy (gtk_file_chooser_get_preview_widget (chooser));
@@ -611,8 +595,10 @@ on_parser_authenticate_for_data(GcrParser *parser,
         }
         gtk_file_chooser_set_preview_widget_active (GTK_FILE_CHOOSER(chooser), TRUE);
         box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 10);
+
         entry = gtk_entry_new ();
         gtk_entry_set_visibility (GTK_ENTRY (entry), FALSE);
+
         gtk_container_add (GTK_CONTAINER (box), GTK_WIDGET (gtk_label_new ("Enter Pin")));
         gtk_container_add (GTK_CONTAINER (box), GTK_WIDGET (entry));
         gtk_widget_show_all (GTK_WIDGET (box));
@@ -659,12 +645,10 @@ on_page2_update_preview(GtkWidget *widget,
         if(!g_file_get_contents (filename, (gchar**)&data, &n_data, NULL))
             printf("couldn't read file");
 
-        
-        bytes = g_bytes_new_take(data, n_data); 
+        bytes = g_bytes_new_take(data, n_data);
         if (!gcr_parser_parse_bytes (self->parser, bytes, &err))
             printf("couldn't parse data: %s", err->message);
 
-	printf("Preview %s\n", filename);
 	g_free(filename);
 
 }
@@ -673,7 +657,6 @@ static void
 on_page1_update_preview(GtkWidget *widget, gpointer *user_data)
 {
 	GcrCertificateChooserDialog *self = GCR_CERTIFICATE_CHOOSER_DIALOG (user_data);
-	
         GError *err = NULL;
         guchar *data;
         gsize n_data;
@@ -686,11 +669,11 @@ on_page1_update_preview(GtkWidget *widget, gpointer *user_data)
         gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
                            self->builder, "key-label")),
                            no_key);
-        
+
         gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
                            self->builder, "certificate-label")),
                            no_certificate);
-    
+
 	gtk_file_chooser_set_preview_widget_active(chooser, FALSE);
 
 	gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(
@@ -698,23 +681,19 @@ on_page1_update_preview(GtkWidget *widget, gpointer *user_data)
                                   FALSE);
 	if (!filename || g_file_test(filename, G_FILE_TEST_IS_DIR))
 		return;
-        
+
         if(!g_file_get_contents (filename, (gchar**)&data, &n_data, NULL))
             printf("couldn't read file");
 
-        
         bytes = g_bytes_new_take(data, n_data); 
         if (!gcr_parser_parse_bytes (self->parser, bytes, &err))
             printf("couldn't parse data: %s", err->message);
-       
      
 	if (self->certificate_uri && g_strcmp0(self->certificate_uri,
                                                filename) != 0) {
 		g_free(self->certificate_uri);
 		self->certificate_uri = NULL;
 	}
-
-	printf("Preview %s\n", filename);
 	g_free(filename);
 }
 
@@ -762,6 +741,7 @@ on_initialized_registered (GObject *unused,
 
         for (m = modules; m != NULL; m = g_list_next (m)) {
                  slots = gck_module_get_slots (m->data, TRUE);
+
                  for (s = slots; s; s = g_list_next (s)) {
                           token = gck_slot_get_token_info (s->data);
                           if (token == NULL)
@@ -790,6 +770,7 @@ gcr_certificate_chooser_dialog_constructed (GObject *obj)
         GtkWidget *content;
         GtkTreeSelection *page1_selection, *page2_selection;
         GError *error = NULL;
+
         G_OBJECT_CLASS (gcr_certificate_chooser_dialog_parent_class)->constructed (obj);
         gck_modules_initialize_registered_async(NULL, on_initialized_registered,
                                                 g_object_ref(self));
@@ -798,24 +779,23 @@ gcr_certificate_chooser_dialog_constructed (GObject *obj)
                   g_warning ("couldn't load ui builder file: %s", error->message);
                   return;
           }
-        printf ("%s\n", UIDIR);
 
 	content = GTK_WIDGET(GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (self))));
- 
         gtk_window_set_default_size (GTK_WINDOW (self), 1200, 800);
 
 	self->hbox = GTK_WIDGET(gtk_builder_get_object(self->builder, "certificate-chooser-dialog"));
-
         gtk_box_pack_start (GTK_BOX(content), self->hbox, TRUE, TRUE, 0);
 
         gtk_image_set_from_gicon(GTK_IMAGE(gtk_builder_get_object(
                                  self->builder, "certificate-image")),
                                  g_themed_icon_new(GCR_ICON_CERTIFICATE),
                                  GTK_ICON_SIZE_DIALOG);
+
         gtk_image_set_from_gicon(GTK_IMAGE(gtk_builder_get_object(
                                  self->builder, "key-image")),
                                  g_themed_icon_new(GCR_ICON_KEY),
                                  GTK_ICON_SIZE_DIALOG);
+
         gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
                            self->builder, "key-label")),
                            no_key);
@@ -833,11 +813,11 @@ gcr_certificate_chooser_dialog_constructed (GObject *obj)
        /* Page1 Construction */
         self->page1_sidebar = gcr_certificate_chooser_sidebar_new();
         page1_selection = gtk_tree_view_get_selection (GTK_TREE_VIEW(self->page1_sidebar->tree_view));
+
         gtk_tree_selection_set_mode (page1_selection, GTK_SELECTION_MULTIPLE);
         g_signal_connect (page1_selection, "changed", G_CALLBACK(on_page1_tree_view_selection_changed), self);
         gtk_tree_view_set_model(GTK_TREE_VIEW(self->page1_sidebar->tree_view),GTK_TREE_MODEL(self->store));
         gtk_paned_pack1(GTK_PANED(gtk_builder_get_object(self->builder, "page1-box")), GTK_WIDGET(self->page1_sidebar),TRUE, FALSE);
-       // gtk_widget_show_all(GTK_WIDGET(gtk_builder_get_object(self->builder, "page1-pkcs11")));
 
 	GtkFileFilter *page1_filefilter = GTK_FILE_FILTER(gtk_builder_get_object(self->builder, "page1-filefilter"));
 	gtk_file_filter_set_name (page1_filefilter,"X.509 Certificate Format");
@@ -876,6 +856,7 @@ gcr_certificate_chooser_dialog_constructed (GObject *obj)
         /* Page2 Construction */
         self->page2_sidebar = gcr_certificate_chooser_sidebar_new();
         page2_selection = gtk_tree_view_get_selection (GTK_TREE_VIEW(self->page2_sidebar->tree_view));
+
         gtk_tree_selection_set_mode (page2_selection, GTK_SELECTION_MULTIPLE);
         g_signal_connect (page2_selection, "changed", G_CALLBACK(on_page2_tree_view_selection_changed), self);
         gtk_tree_view_set_model(GTK_TREE_VIEW(self->page2_sidebar->tree_view),GTK_TREE_MODEL(self->store));
@@ -946,6 +927,7 @@ gcr_certificate_chooser_dialog_init (GcrCertificateChooserDialog *self)
 
         gtk_list_store_append (self->store, &iter);
         gtk_list_store_set(self->store, &iter, ROW_TYPE, "file-system", COLUMN_SLOT, NULL, -1);
+
         self->parser = gcr_parser_new();
         self->page1_viewer = gcr_viewer_new();
         self->page2_viewer = gcr_viewer_new();

@@ -1,3 +1,22 @@
+/*
+ *
+ * Copyright (C) 2016 Prashant Tyagi and David Woodhouse
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, see <http://www.gnu.org/licenses/>.
+ */
+
+
 #include <string.h>
 #define GCR_CERTIFICATE_CHOOSER_PKCS11_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), GCR_TYPE_CERTIFICATE_CHOOSER_PKCS11, GcrCertificateChooserPkcs11Class))
 #define GCR_IS_CERTIFICATE_CHOOSER_PKCS11_CLASS(klass)        (G_TYPE_CHECK_CLASS_TYPE ((klass), GCR_TYPE_CERTIFICATE_CHOOSER_PKCS11))
@@ -86,31 +105,32 @@ on_tree_node_select (GtkTreeModel *model,
         gtk_tree_model_get (model, iter, 0, &object, -1);
 
         if (self->current_page != page2) {
-
                  cert_attributes = gck_object_get (object,
                                                    self->cancellable,
                                                    &error, CKA_CLASS,
                                                    CKA_LABEL, CKA_ISSUER,
                                                    CKA_ID,GCK_INVALID);
+
                  gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
                                     self->builder, "key-label")),
                                     "No key selected yet");
+
                  cert_attribute = gck_attributes_find (cert_attributes, CKA_ID);
                  gck_attributes_find_string (cert_attributes, CKA_LABEL, &cert_label);
 
                  for (l = self->objects; l != NULL; l = g_list_next (l)) {
-
                           key_attributes = gck_object_get (l->data,
                                                            self->cancellable,
                                                            &error, CKA_CLASS,
                                                            CKA_LABEL, CKA_ID,
                                                            GCK_INVALID);
-                          gck_attributes_find_ulong (key_attributes, CKA_CLASS, &class);
 
+                          gck_attributes_find_ulong (key_attributes, CKA_CLASS, &class);
                           if (class == CKO_PRIVATE_KEY) {
 
                                    gck_attributes_find_string (key_attributes, CKA_LABEL, &key_label);
                                    key_attribute = gck_attributes_find (key_attributes, CKA_ID);
+
                                    if (gck_attribute_equal (key_attribute, cert_attribute) && !(g_strcmp0 (cert_label, key_label))) {
 
                                             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
@@ -154,7 +174,6 @@ on_cell_renderer_pixbuf(GtkTreeViewColumn *column,
 {
         GcrCertificateChooserPkcs11 *self = GCR_CERTIFICATE_CHOOSER_PKCS11(user_data);
         if (self->current_page != page2) {
-
                  g_object_set(cell,
                               "visible", TRUE,
                               "gicon", g_themed_icon_new(GCR_ICON_CERTIFICATE),
@@ -199,12 +218,12 @@ gcr_certificate_chooser_pkcs11_constructed (GObject *obj)
         gtk_tree_view_column_set_cell_data_func (col, cell,
                                                  on_cell_renderer_object,
                                                  self, NULL);
- 
         
         g_object_set (cell,
                       "ellipsize", PANGO_ELLIPSIZE_END,
                       "ellipsize-set", TRUE,
                        NULL);
+
         gtk_tree_view_append_column (GTK_TREE_VIEW(self->tree_view), col);
         gtk_tree_view_column_set_max_width (GTK_TREE_VIEW_COLUMN (col), 12);
         gtk_container_add (GTK_CONTAINER (self->box), GTK_WIDGET (self->tree_view));
@@ -256,17 +275,15 @@ on_objects_loaded (GObject *enumerator,
                  current_class_needed = CKO_PRIVATE_KEY;
         else
                  current_class_needed = CKO_CERTIFICATE;
-        for (l = self->objects; l != NULL; l = g_list_next (l)) {
 
+        for (l = self->objects; l != NULL; l = g_list_next (l)) {
                  GckAttributes *attributes = gck_object_get (l->data,
                                                              self->cancellable,
                                                              &error, CKA_CLASS,
                                                              CKA_LABEL, CKA_ISSUER,GCK_INVALID);
 
                  if (!gcr_collection_contains (GCR_COLLECTION (self->collection), l->data)) {
-
                           if (gck_attributes_find_ulong (attributes, CKA_CLASS, &class) && class == current_class_needed) {
-
                                    gtk_list_store_append (self->store, &iter);
                                    gtk_list_store_set (self->store, &iter, COLUMN_OBJECT, l->data, -1);
                                    gcr_simple_collection_add (GCR_SIMPLE_COLLECTION(self->collection), l->data);
@@ -308,25 +325,26 @@ on_password_verify (GObject *session,
 {
         GError *error = NULL;
         GcrCertificateChooserPkcs11 *self = GCR_CERTIFICATE_CHOOSER_PKCS11(data);
+        GckEnumerator *enumerator;
+        GckAttributes *match = gck_attributes_new_empty (GCK_INVALID);
         gtk_entry_set_text (GTK_ENTRY (self->entry), "");
 
         if (gck_session_login_finish (self->session, result, &error)) {
-
-                 GckEnumerator *enumerator;
-                 GckAttributes *match = gck_attributes_new_empty (GCK_INVALID);
- 
-                 gtk_widget_destroy (GTK_WIDGET (self->entry));
-                 gtk_widget_destroy (GTK_WIDGET (self->label));
                  gtk_list_store_clear (self->store);
                  g_object_unref (self->collection);
                  self->collection = gcr_simple_collection_new ();
+
                  enumerator = gck_session_enumerate_objects (self->session,
                                                              match);
+
                  gck_enumerator_next_async (enumerator,
                                             -1,
                                             self->cancellable,
                                             on_objects_loaded,
                                             g_object_ref (self));
+
+                 gtk_widget_destroy (GTK_WIDGET (self->entry));
+                 gtk_widget_destroy (GTK_WIDGET (self->label));
         }
         
         if (error != NULL) {
@@ -364,17 +382,21 @@ on_login_button_clicked (GtkWidget *widget,
 {
 
         GcrCertificateChooserPkcs11 *self = GCR_CERTIFICATE_CHOOSER_PKCS11(data);
-        gtk_widget_destroy (GTK_WIDGET (widget));
         self->entry = gtk_entry_new ();
+
         gtk_entry_set_max_length (GTK_ENTRY (self->entry), 50);
         gtk_entry_set_visibility (GTK_ENTRY (self->entry), FALSE);
+
         gtk_container_add (GTK_CONTAINER (self->box), GTK_WIDGET (self->label));
         gtk_container_add (GTK_CONTAINER (self->box), GTK_WIDGET (self->entry));
+
         gtk_box_reorder_child (GTK_BOX (self->box), GTK_WIDGET (self->tree_view), 2);
         g_signal_connect (self->entry, "activate",
 		      G_CALLBACK (on_password_enter),
 		      self);
+
         gtk_widget_show_all (GTK_WIDGET (self->box));
+        gtk_widget_destroy (GTK_WIDGET (widget));
 }
 
 GcrCertificateChooserPkcs11 *
@@ -384,9 +406,11 @@ gcr_certificate_chooser_pkcs11_new (GckSlot *slot,
         GcrCertificateChooserPkcs11 *self;
         self = g_object_new (GCR_TYPE_CERTIFICATE_CHOOSER_PKCS11,
                              NULL);
+
         self->current_page = page;
         self->slot = slot;
         self->info = gck_slot_get_token_info (self->slot);
+
         gck_session_open_async (self->slot, 
                                 GCK_SESSION_READ_ONLY,
                                 NULL,
@@ -395,7 +419,6 @@ gcr_certificate_chooser_pkcs11_new (GckSlot *slot,
                                 g_object_ref(self));
 
         if ((self->info)->flags & CKF_LOGIN_REQUIRED ) {
-
                  GtkWidget *button = gtk_button_new_with_label ("Click Here To See More!");
                  gtk_container_add (GTK_CONTAINER (self->box), GTK_WIDGET (button));
                  gtk_box_reorder_child (GTK_BOX (self->box), GTK_WIDGET (self->tree_view), 1);
