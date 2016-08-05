@@ -566,7 +566,6 @@ on_unlock_renderer_clicked(GtkEntry *entry,
 
                 gtk_widget_destroy (gtk_file_chooser_get_preview_widget (chooser));
                 gtk_file_chooser_set_preview_widget_active(GTK_FILE_CHOOSER(chooser), FALSE);
-                g_object_unref (entry);
 
         }
         return TRUE;

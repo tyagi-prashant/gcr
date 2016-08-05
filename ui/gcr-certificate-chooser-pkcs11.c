@@ -280,7 +280,8 @@ on_objects_loaded (GObject *enumerator,
                  GckAttributes *attributes = gck_object_get (l->data,
                                                              self->cancellable,
                                                              &error, CKA_CLASS,
-                                                             CKA_LABEL, CKA_ISSUER,GCK_INVALID);
+                                                             CKA_LABEL, CKA_ISSUER,
+                                                             CKA_ID, GCK_INVALID);
 
                  if (!gcr_collection_contains (GCR_COLLECTION (self->collection), l->data)) {
                           if (gck_attributes_find_ulong (attributes, CKA_CLASS, &class) && class == current_class_needed) {
