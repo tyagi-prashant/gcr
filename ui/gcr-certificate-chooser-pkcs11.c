@@ -301,8 +301,7 @@ get_session (GObject *slot,
 {
         GError *error = NULL;
         GckEnumerator *enumerator;
-        GckAttributes *match = gck_attributes_new_empty (CKA_CLASS, CKA_LABEL,
-                                                         CKA_ID, GCK_INVALID);
+        GckAttributes *match = gck_attributes_new_empty (GCK_INVALID);
         GcrCertificateChooserPkcs11 *self = GCR_CERTIFICATE_CHOOSER_PKCS11(data);
         self->session = gck_session_open_finish (result, &error);
 
@@ -328,8 +327,7 @@ on_password_verify (GObject *session,
         GError *error = NULL;
         GcrCertificateChooserPkcs11 *self = GCR_CERTIFICATE_CHOOSER_PKCS11(data);
         GckEnumerator *enumerator;
-        GckAttributes *match = gck_attributes_new_empty (CKA_CLASS, CKA_LABEL,
-                                                         CKA_ID, GCK_INVALID);
+        GckAttributes *match = gck_attributes_new_empty (GCK_INVALID);
         gtk_entry_set_text (GTK_ENTRY (self->entry), "");
 
         if (gck_session_login_finish (self->session, result, &error)) {
