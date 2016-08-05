@@ -267,6 +267,7 @@ on_objects_loaded (GObject *enumerator,
         GError *error = NULL;
         GList *l;
         GtkTreeIter iter;
+        gchar *label;
         gulong class, current_class_needed;
         self->objects = gck_enumerator_next_finish (GCK_ENUMERATOR(enumerator),
                                                     result,
@@ -287,6 +288,8 @@ on_objects_loaded (GObject *enumerator,
                           if (gck_attributes_find_ulong (attributes, CKA_CLASS, &class) && class == current_class_needed) {
                                    gtk_list_store_append (self->store, &iter);
                                    gtk_list_store_set (self->store, &iter, COLUMN_OBJECT, l->data, -1);
+                                   gck_attributes_find_string(attributes, CKA_LABEL, &label);
+                                   printf ("the label of certificate is %s\n", label);
                                    gcr_simple_collection_add (GCR_SIMPLE_COLLECTION(self->collection), l->data);
                           }
                  gck_attributes_unref (attributes);
