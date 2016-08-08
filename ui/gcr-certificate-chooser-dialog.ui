@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!---interface-requires gtk+ 2.12 -->
-  <object class="GtkFileFilter" id="page1-filefilter">
+  <object class="GtkFileFilter" id="cert-filefilter">
     <patterns>
       <pattern>*.pem</pattern>
       <pattern>*.crt</pattern>
@@ -11,7 +11,7 @@
       <pattern>*.pfx</pattern>
     </patterns>
   </object>
-  <object class="GtkFileFilter" id="page2-filefilter">
+  <object class="GtkFileFilter" id="key-filefilter">
     <patterns>
       <pattern>*.pem</pattern>
       <pattern>*.der</pattern>
@@ -26,7 +26,7 @@
     <property name="can_default">True</property>
   </object>
 
-  <object class="GtkFileChooserWidget" id="page1-filechooser">
+  <object class="GtkFileChooserWidget" id="filechooser">
     <property name="action">GTK_FILE_CHOOSER_ACTION_OPEN</property>
     <property name="visible">True</property>
     <property name="can_focus">True</property>
@@ -35,38 +35,6 @@
     <property name="width-request">700</property>
     <property name="preview-widget-active">False</property>
   </object>
-  <object class="GtkFileChooserWidget" id="page2-filechooser">
-    <property name="action">GTK_FILE_CHOOSER_ACTION_OPEN</property>
-    <property name="visible">True</property>
-    <property name="can_focus">True</property>
-    <property name="preview-widget-active">False</property>
-  </object>
-  <object class="GtkHBox" id="next-preview-box">
-    <property name="visible">True</property>
-    <property name="border_width">6</property>
-    <property name="spacing">6</property>
-    <child>
-      <object class="GtkButton" id="page2-prev-button">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="label" translatable="yes">prev</property>
-      </object>
-      <packing>
-        <property name="position">0</property>
-      </packing>
-    </child>
-    <child>
-      <object class="GtkButton" id="page21-next-button">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="sensitive">False</property>
-        <property name="label" translatable="yes">next</property>
-      </object>
-      <packing>
-        <property name="position">1</property>
-      </packing>
-    </child>
-  </object> 
   <object class="GtkHBox" id="certificate-chooser-dialog">
     <property name="visible">True</property>
     <property name="can_focus">True</property>
@@ -147,20 +115,11 @@
           </packing>
         </child>
         <child>
-          <object class="GtkButton" id="page1-next-button">
+          <object class="GtkButton" id="next-button">
             <property name="halign">GTK_ALIGN_END</property>
             <property name="valign">GTK_ALIGN_END</property>
             <property name="sensitive">FALSE</property>
             <property name="label" translatable="yes">next</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkButton" id="page2-next-button">
-            <property name="halign">GTK_ALIGN_END</property>
-            <property name="valign">GTK_ALIGN_END</property>
-            <property name="sensitive">FALSE</property>
-            <property name="label" translatable="yes">next</property>
-            <property name="visible">FALSE</property>
           </object>
         </child>
       </object>
@@ -176,23 +135,17 @@
         <property name="visible">True</property>
         <property name="transition-type">GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT</property>
         <child>
-          <object class="GtkHPaned" id="page1-box">
+          <object class="GtkHPaned" id="selection-page">
             <property name="can_focus">True</property>
             <property name="visible">True</property>
           </object> 
         </child>
         <child>
-          <object class="GtkHPaned" id="page2-box">
-            <property name="can_focus">True</property>
-            <property name="visible">True</property>
-          </object> 
-        </child>
-        <child>
-          <object class="GtkHBox" id="page3-box">
+          <object class="GtkHBox" id="confirm-page">
             <property name="can_focus">True</property>
             <property name="visible">True</property>
             <child>
-              <object class="GtkButton" id="page3-confirm">
+              <object class="GtkButton" id="confirm-button">
                 <property name="can_focus">True</property>
                 <property name="visible">True</property>
                 <property name="halign">GTK_ALIGN_END</property>

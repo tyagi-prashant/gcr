@@ -52,11 +52,23 @@ GType                   gcr_certificate_chooser_sidebar_get_type     (void) G_GN
 
 GType                   gcr_certificate_chooser_pkcs11_get_type     (void) G_GNUC_CONST;
 
+GList                   *stored_uri = NULL;
+
+GList                   *stored_password = NULL;
+
+gchar                   *cert_uri = NULL;
+
+gchar                   *cert_password = NULL;
+
+gchar                   *key_uri = NULL;
+
+gchar                   *key_password = NULL;
+
 GcrCertificateChooserDialog * gcr_certificate_chooser_dialog_new    (GtkWindow *parent);
 
 GcrCertificateChooserSidebar * gcr_certificate_chooser_sidebar_new    (void);
 
-GcrCertificateChooserPkcs11 * gcr_certificate_chooser_pkcs11_new    (GckSlot *slot, gchar *page);
+GcrCertificateChooserPkcs11 * gcr_certificate_chooser_pkcs11_new    (GckSlot *slot, gboolean is_certificate_choosen);
 
 gboolean                gcr_certificate_chooser_dialog_run               (GcrCertificateChooserDialog *self);
 
