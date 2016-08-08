@@ -320,7 +320,7 @@ static void
 on_confirm_button_clicked (GtkWidget *widget,
                            gpointer data)
 {
-        printf ("The selected certificate uri is %s\n", cert_uri)
+        printf ("The selected certificate uri is %s\n", cert_uri);
         printf ("The selected certificate password is %s\n", cert_password);
         printf ("The selected key uri is %s\n", key_uri);
         printf ("The selected key password is %s\n", key_password);
