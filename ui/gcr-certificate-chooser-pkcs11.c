@@ -106,13 +106,16 @@ on_tree_node_select (GtkTreeModel *model,
         uri_data->any_unrecognized = FALSE;
 
         gtk_tree_model_get (model, iter, 0, &object, -1);
-
         if (!self->certificate_choosen) {
-                 cert_attributes = gck_object_get (object,
-                                                   self->cancellable,
+                 cert_attributes = gck_object_get (object, self->cancellable,
                                                    &error, CKA_CLASS,
-                                                   CKA_LABEL, CKA_ISSUER,
+                                                   CKA_VALUE, CKA_LABEL, CKA_ISSUER,
                                                    CKA_ID,GCK_INVALID);
+
+                 GcrCertificateRenderer *renderer =  gcr_certificate_renderer_new_for_attributes ("Certificate", cert_attributes);
+                 GcrCertificate *certificate = gcr_certificate_renderer_get_certificate (renderer);
+                 gcr_certificate_widget_set_certificate (GCR_CERTIFICATE_WIDGET (gtk_builder_get_object
+                                                        (self->builder, "certficate-info")), certificate);
                  uri_data->attributes = cert_attributes;
                  cert_uri = gck_uri_build (uri_data, GCK_URI_FOR_ANY);
 
@@ -124,11 +127,9 @@ on_tree_node_select (GtkTreeModel *model,
                  gck_attributes_find_string (cert_attributes, CKA_LABEL, &cert_label);
 
                  for (l = self->objects; l != NULL; l = g_list_next (l)) {
-                          key_attributes = gck_object_get (l->data,
-                                                           self->cancellable,
-                                                           &error, CKA_CLASS,
-                                                           CKA_LABEL, CKA_ID,
-                                                           GCK_INVALID);
+                          key_attributes = gck_object_get (l->data, self->cancellable,
+                                                           &error, CKA_CLASS, CKA_LABEL,
+                                                           CKA_ID, GCK_INVALID);
 
                           gck_attributes_find_ulong (key_attributes, CKA_CLASS, &class);
                           if (class == CKO_PRIVATE_KEY) {
@@ -139,9 +140,17 @@ on_tree_node_select (GtkTreeModel *model,
                                    if (gck_attribute_equal (key_attribute, cert_attribute) && !(g_strcmp0 (cert_label, key_label))) {
 
                                             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
-                                                                         self->builder, "key-label")),
-                                                                         "Key selected");
+                                                                         self->builder, "key-label")), "Key selected");
 
+                                             key_attributes = gck_object_get (l->data, self->cancellable,
+                                                                              &error, CKA_CLASS,
+                                                                              CKA_LABEL, CKA_ID,
+                                                                              CKA_PUBLIC_EXPONENT,CKA_KEY_TYPE,
+                                                                              CKK_RSA, CKA_MODULUS,
+                                                                              CKA_VALUE, GCK_INVALID);
+
+                                            gcr_key_widget_set_attributes (GCR_KEY_WIDGET (gtk_builder_get_object
+                                                                            (self->builder, "key-info")), key_attributes);
                                             uri_data->attributes = key_attributes;
                                             key_uri = gck_uri_build (uri_data, GCK_URI_FOR_ANY);
                                    }
@@ -155,19 +164,32 @@ on_tree_node_select (GtkTreeModel *model,
                  gtk_widget_set_sensitive (GTK_WIDGET (gtk_builder_get_object (
                                            self->builder, "next-button")), TRUE);
         } else {
-                 key_attributes = gck_object_get (object,
-                                                  self->cancellable,
-                                                  &error, CKA_CLASS,
-                                                  CKA_LABEL, CKA_ID,
-                                                  GCK_INVALID);
-                 uri_data->attributes = key_attributes;
-                 key_uri = gck_uri_build (uri_data, GCK_URI_FOR_ANY);
+                 key_attributes = gck_object_get (object, self->cancellable,
+                                                  &error, CKA_CLASS, GCK_INVALID);
+                 if (key_attributes == NULL)
+                          return ;
 
-                 gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
-                                    self->builder, "key-label")),
-                                    "Key selected");
-                 gtk_widget_set_sensitive (GTK_WIDGET (gtk_builder_get_object (
-                                           self->builder, "next-button")), TRUE);
+                 gck_attributes_find_ulong (key_attributes, CKA_CLASS, &class);
+
+                 if (class == CKO_PRIVATE_KEY) {
+                          key_attributes = gck_object_get (object, self->cancellable,
+                                                           &error, CKA_CLASS, CKA_LABEL,
+                                                           CKA_ID,CKA_PUBLIC_EXPONENT,
+                                                           CKA_KEY_TYPE, CKK_RSA, CKA_MODULUS,
+                                                           CKA_VALUE, GCK_INVALID);
+
+                          gcr_key_widget_set_attributes (GCR_KEY_WIDGET (gtk_builder_get_object
+                                                        (self->builder, "key-info")), key_attributes);
+
+                          uri_data->attributes = key_attributes;
+                          key_uri = gck_uri_build (uri_data, GCK_URI_FOR_ANY);
+
+                          gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
+                                                       self->builder, "key-label")), "Key selected");
+
+                          gtk_widget_set_sensitive (GTK_WIDGET (gtk_builder_get_object (
+                                                    self->builder, "next-button")), TRUE);
+                }
 
         }
 }

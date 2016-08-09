@@ -141,35 +141,54 @@
           </object> 
         </child>
         <child>
-          <object class="GtkHBox" id="confirm-page">
+          <object class="GtkVBox" id="confirm-page">
             <property name="can_focus">True</property>
             <property name="visible">True</property>
+            <property name="spacing">10</property>
             <child>
-              <object class="GtkButton" id="confirm-button">
-                <property name="can_focus">True</property>
+              <object class="GcrCertificateWidget" id="certficate-info">
                 <property name="visible">True</property>
-                <property name="halign">GTK_ALIGN_END</property>
+                <property name="halign">GTK_ALIGN_START</property>
+                <property name="hexpand">FALSE</property>
+                <property name="vexpand">FALSE</property>
                 <property name="valign">GTK_ALIGN_START</property>
-                <property name="label" translatable="yes">confirm</property>
               </object>
             </child>
             <child>
-              <object class="GtkButton" id="choose-again-button">
+              <object class="GcrKeyWidget" id="key-info">
                 <property name="visible">True</property>
                 <property name="halign">GTK_ALIGN_START</property>
                 <property name="valign">GTK_ALIGN_START</property>
-                <property name="can_focus">True</property>
-                <property name="label" translatable="yes">select again</property>
               </object>
             </child>
-          </object> 
-          <packing>
-            <property name="position">2</property>
-          </packing>
+            <child>
+              <object class="GtkHBox" id="button-holder">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="spacing">6</property>
+                <child>
+                  <object class="GtkButton" id="confirm-button">
+                    <property name="can_focus">True</property>
+                    <property name="visible">True</property>
+                    <property name="halign">GTK_ALIGN_END</property>
+                    <property name="valign">GTK_ALIGN_START</property>
+                    <property name="label" translatable="yes">confirm</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="choose-again-button">
+                    <property name="visible">True</property>
+                    <property name="halign">GTK_ALIGN_START</property>
+                    <property name="valign">GTK_ALIGN_START</property>
+                    <property name="can_focus">True</property>
+                    <property name="label" translatable="yes">select again</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
         </child>
       </object>
     </child>
   </object>
 </interface>
-
-

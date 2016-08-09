@@ -519,12 +519,19 @@ on_parser_parsed_item(GcrParser *parser,
                           gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(
                                                    self->builder,"next-button")), TRUE);
 
+                          GcrCertificateRenderer *renderer =  gcr_certificate_renderer_new_for_attributes ("Certificate", attributes);
+                          GcrCertificate *certificate = gcr_certificate_renderer_get_certificate (renderer);
+                          gcr_certificate_widget_set_certificate (GCR_CERTIFICATE_WIDGET (gtk_builder_get_object
+                                                                 (self->builder, "certficate-info")), certificate);
                           cert_uri = gtk_file_chooser_get_uri (chooser);
                  } else if (gck_attributes_find_ulong (attributes, CKA_CLASS, &class) && class == CKO_PRIVATE_KEY) {
 
                           gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
                                              self->builder, "key-label")),
                                              "Key selected");
+
+                          gcr_key_widget_set_attributes (GCR_KEY_WIDGET (gtk_builder_get_object
+                                                                         (self->builder, "key-info")), attributes);
 
                           self->is_key_choosen = TRUE;
                           key_uri = gtk_file_chooser_get_uri (chooser);
@@ -539,6 +546,9 @@ on_parser_parsed_item(GcrParser *parser,
 
                           gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(
                                                    self->builder, "next-button")), TRUE);
+
+                          gcr_key_widget_set_attributes (GCR_KEY_WIDGET (gtk_builder_get_object
+                                                                        (self->builder, "key-info")), attributes);
 
                           key_uri = gtk_file_chooser_get_uri (chooser);
                   }
