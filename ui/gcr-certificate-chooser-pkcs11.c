@@ -62,7 +62,7 @@ on_cell_renderer_object(GtkTreeViewColumn *column,
                        gpointer user_data)
 {
         GckObject *object;
-        gchar *label;
+        gchar *label = NULL;
         GError *error = NULL;
         GcrCertificateChooserPkcs11 *self = GCR_CERTIFICATE_CHOOSER_PKCS11 (user_data);
 
@@ -79,6 +79,11 @@ on_cell_renderer_object(GtkTreeViewColumn *column,
                           g_object_set(cell,
                                        "visible", TRUE,
                                        "text", label,
+                                       NULL);
+                 } else if (label == NULL) {
+                          g_object_set(cell,
+                                       "visible", TRUE,
+                                       "text", "NULL",
                                        NULL);
                  }
         }
@@ -244,7 +249,7 @@ sort_model (GtkTreeModel *model,
         GckAttributes *object1_attributes, *object2_attributes;
         gint ret = 0;
         GError *error1 = NULL, *error2 = NULL;
-        gchar *object1_label, *object2_label;
+        gchar *object1_label = NULL, *object2_label = NULL;
 
         gtk_tree_model_get (model, a, 0, &object1, -1);
         gtk_tree_model_get (model, b, 0, &object2, -1);
