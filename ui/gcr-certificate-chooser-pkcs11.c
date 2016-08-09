@@ -74,13 +74,14 @@ on_cell_renderer_object(GtkTreeViewColumn *column,
        if (error != NULL)
                  printf("object error occur\n");
        else {    
-                 if (gck_attributes_find_string (attributes, CKA_LABEL, &label)) {
+                 gck_attributes_find_string (attributes, CKA_LABEL, &label);
+                 if (label != NULL) {
 
                           g_object_set(cell,
                                        "visible", TRUE,
                                        "text", label,
                                        NULL);
-                 } else if (label == NULL) {
+                 } else {
                           g_object_set(cell,
                                        "visible", TRUE,
                                        "text", "NULL",
