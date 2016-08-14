@@ -362,6 +362,12 @@ on_choose_again_button_clicked(GtkWidget *widget,
 
 }
 
+/**
+ * set_cert_uri_and_password_from_pkcs11: (skip)
+ * @self: the widget from the info is retrieved
+ *
+ * set the cert object uri and password that has came from file
+ */
 static void
 set_cert_uri_and_password_from_file (GcrCertificateChooserDialog *self)
 {
@@ -379,6 +385,12 @@ set_cert_uri_and_password_from_file (GcrCertificateChooserDialog *self)
         cert_password = NULL;
 }
 
+/**
+ * set_key_uri_and_password_from_pkcs11: (skip)
+ * @self: the widget from the info is retrieved
+ *
+ * set the key object uri and password that has came from file
+ */
 static void
 set_key_uri_and_password_from_file (GcrCertificateChooserDialog *self)
 {
@@ -396,6 +408,12 @@ set_key_uri_and_password_from_file (GcrCertificateChooserDialog *self)
         key_password = NULL;
 }
 
+/**
+ * set_cert_uri_and_password_from_pkcs11: (skip)
+ * @widget: the widget from the info is retrieved
+ *
+ * set the cert object uri and password that has came from pkcs11 token
+ */
 static void
 set_cert_uri_and_password_from_pkcs11 (GtkWidget *widget)
 {
@@ -414,6 +432,13 @@ set_cert_uri_and_password_from_pkcs11 (GtkWidget *widget)
         }
         cert_password = NULL;
 }
+
+/**
+ * set_key_uri_and_password_from_pkcs11: (skip)
+ * @widget: the widget from the info is retrieved
+ *
+ * set the key object uri and pasword that has came from pkcs11 token
+ */
 static void
 set_key_uri_and_password_from_pkcs11 (GtkWidget *widget)
 {
@@ -433,6 +458,13 @@ set_key_uri_and_password_from_pkcs11 (GtkWidget *widget)
         key_password = NULL;
 }
 
+/**
+ * on_next_button_clicked: (skip)
+ * @widget: the next button widget
+ * @data: the data passed when widget is clicked
+ *
+ * Change the current page.
+ */
 static void
 on_next_button_clicked(GtkWidget *widget, gpointer *data)
 {
@@ -591,6 +623,14 @@ on_unlock_renderer_clicked(GtkEntry *entry,
         return TRUE;
 }
 
+/**
+ * on_parser_authenticate_for_data: (skip)
+ * @parser: the parser
+ * @count: the number of times this function is called for a particular file
+ * @data_main: the data passed to this function
+ *
+ * Render the widget for asking a pin if the content of a file is locked
+ */
 static gboolean 
 on_parser_authenticate_for_data(GcrParser *parser,
                          gint count,
@@ -621,6 +661,13 @@ on_parser_authenticate_for_data(GcrParser *parser,
         return TRUE;
 }
 
+/**
+ * on_update_preview: (skip)
+ * @widget: the widget of which preview is updated
+ * @user_data: the data passed to this function
+ *
+ * Set the key cert label on every update to preview
+ */
 static void
 on_update_preview(GtkWidget *widget, gpointer *user_data)
 {
@@ -674,6 +721,14 @@ on_update_preview(GtkWidget *widget, gpointer *user_data)
 	g_free(filename);
 }
 
+/**
+ * is_token_usable:(skip)
+ * @self: the GcrCertificateChooserDialog type object
+ * @slot: the slot from which the info of token will be retrieved
+ * @tokeninfo: the token info of a slot
+ *
+ * Return TRUE if the token is usable else FALSE otherwise
+ */
 static gboolean
 is_token_usable (GcrCertificateChooserDialog *self,
                  GckSlot *slot,
@@ -697,6 +752,13 @@ is_token_usable (GcrCertificateChooserDialog *self,
         return TRUE;
 }
 
+/**
+ * load_token: (skip)
+ * @self: the GcrCertificateChooserDialog type object
+ *
+ * To retrieve the list of available token from the slots and insert them
+ * into the tree model
+ */
 static void
 load_token (GcrCertificateChooserDialog *self)
 {
@@ -722,6 +784,14 @@ load_token (GcrCertificateChooserDialog *self)
         }
 }
 
+/**
+ * on_initialized_registered: (skip)
+ * @unused: The Gobject
+ * @result: the asynchronic result
+ * @user_data: the data passed to this function
+ *
+ * To retrieve the list of available slots in the system
+ */
 static void
 on_initialized_registered (GObject *unused,
                            GAsyncResult *result,

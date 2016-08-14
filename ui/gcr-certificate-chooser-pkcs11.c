@@ -54,6 +54,15 @@ typedef struct _GcrCertificateChooserPkcs11Class GcrCertificateChooserPkcs11Clas
 
 G_DEFINE_TYPE (GcrCertificateChooserPkcs11, gcr_certificate_chooser_pkcs11, GTK_TYPE_SCROLLED_WINDOW);
 
+/**
+ * on_cell_renderer_object: (skip)
+ * @column: treeviewcolumn
+ * @model: the tree view model
+ * @iter: a tree iter for a particular row of a tree view
+ * @user_data: the data passed to this function
+ *
+ * Set the value of a particular cell
+ */
 static void
 on_cell_renderer_object(GtkTreeViewColumn *column,
                        GtkCellRenderer *cell,
@@ -90,6 +99,14 @@ on_cell_renderer_object(GtkTreeViewColumn *column,
         }
 }
 
+/**
+ * on_tree_node_select: (skip)
+ * @model: model of a tree
+ * @path: a path to a particular row of a model
+ * @iter: a iter of a tree for a particular selected row of a tree
+ *
+ * Set's the value of certificate or key that has been selected
+ */
 static void
 on_tree_node_select (GtkTreeModel *model,
                      GtkTreePath *path,
@@ -97,7 +114,7 @@ on_tree_node_select (GtkTreeModel *model,
                      gpointer data)
 {
         GckObject *object;
-        gchar *cert_label, *key_label;
+        gchar *cert_label = NULL, *key_label = NULL;
         gulong class;
         GError *error = NULL;
         GList *l;
@@ -163,9 +180,11 @@ on_tree_node_select (GtkTreeModel *model,
                           }
                  }
 
-                 gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
-                                    self->builder, "certificate-label")),
-                                    cert_label);
+                 if (cert_label != NULL) {
+                          gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(
+                                             self->builder, "certificate-label")),
+                                             cert_label);
+                 }
 
                  gtk_widget_set_sensitive (GTK_WIDGET (gtk_builder_get_object (
                                            self->builder, "next-button")), TRUE);
@@ -200,6 +219,12 @@ on_tree_node_select (GtkTreeModel *model,
         }
 }
 
+/** on_tree_view_selection_changed: (skip)
+ * @selection: seelction of a tree
+ * @data: data passed for this function
+ *
+ * It invoke the other function when the tree view changes
+ */
 static void
 on_tree_view_selection_changed (GtkTreeSelection *selection,
                                 gpointer data)
@@ -229,6 +254,15 @@ on_cell_renderer_pixbuf(GtkTreeViewColumn *column,
         }
 }
 
+/**
+ * on_row_activated: (skip)
+ * @tree_view: The tree view
+ * @path: The path to the particular row of a tree view
+ * @column: The treeviewcolumn of a tree
+ * @data: Data passed to this function
+ *
+ * This function this the current page
+ */
 static void
 on_row_activated (GtkTreeView       *tree_view,
                   GtkTreePath       *path,
@@ -239,6 +273,14 @@ on_row_activated (GtkTreeView       *tree_view,
         gtk_button_clicked (GTK_BUTTON (gtk_builder_get_object (self->builder, "next-button")));
 }
 
+/**
+ * sort_model: (skip)
+ * @model: The model of a tree
+ * @a, @b: TreeIter's to take object from
+ * @data: Data passed to this function
+ *
+ * Sort the element in the GtkTreeView according to the lexicographic order
+ */
 static gint
 sort_model (GtkTreeModel *model,
             GtkTreeIter *a,
@@ -358,6 +400,13 @@ gcr_certificate_chooser_pkcs11_init (GcrCertificateChooserPkcs11 *self)
 
 }
 
+/* on_object_loaded: (skip)
+ * @enumerator: The enumerator to enumerate object from
+ * @result: The asynchronic result
+ * @data: The data passed to this function when asynchronic result is returned
+ *
+ * Load object in the GtkTreeView for a particular page
+ */
 static void
 on_objects_loaded (GObject *enumerator,
                    GAsyncResult *result,
@@ -414,6 +463,14 @@ on_objects_loaded (GObject *enumerator,
         }
 }
 
+/**
+ * get_session:(skip)
+ * @slot: The slot
+ * @result: Result of a asynchronic function
+ * @result: data passed to this function when asynchronic result is returned
+ *
+ * Get the session
+ */
 static void
 get_session (GObject *slot,
              GAsyncResult *result,
@@ -436,6 +493,13 @@ get_session (GObject *slot,
         }
 }
 
+/** update_object:
+ * @self: The GcrCertificateChooser type object
+ *
+ * This function is used to update object in list when login into
+ * the token or page change (so that only certain feasible object are
+ * rendered).
+ */
 static void
 update_object (GcrCertificateChooserPkcs11 *self)
 {
@@ -452,6 +516,13 @@ update_object (GcrCertificateChooserPkcs11 *self)
                                    self->cancellable, on_objects_loaded, self);
 }
 
+/**
+ * get_token_uri:(skip)
+ * @self: The GcrCertificateChooserPkcs11 that contains the information
+ * about the token and session.
+ *
+ * Return: The uri of token  of a GcrCertficateChooserPkcs11 object
+ */
 static gchar*
 get_token_uri (GcrCertificateChooserPkcs11 *self)
 {
@@ -465,6 +536,12 @@ get_token_uri (GcrCertificateChooserPkcs11 *self)
         return gck_uri_build (uri_data, GCK_URI_FOR_TOKEN);
 }
 
+/**
+ * on_password_verify: (skip)
+ * @session: The session on which to login
+ * @result: Asynchronic function result
+ * @data: gpointer data passed to function
+ */
 static void
 on_password_verify (GObject *session,
                    GAsyncResult *result,
@@ -500,6 +577,14 @@ on_password_verify (GObject *session,
         }
 }
 
+/**
+ * on_pasword_enter:
+ * @widget: The widget from which the password came
+ * @data:  data passed to this function
+ *
+ * This function is used to recover the password typed by
+ * the user
+ */
 static void
 on_password_enter (GtkWidget *widget, 
                    gpointer data)
@@ -517,6 +602,13 @@ on_password_enter (GtkWidget *widget,
                                  self);
 }
 
+/**
+ * on_login_button_clicked:
+ * @widget: The widget that has been clicked
+ * data: data passed to the function call
+ *
+ * Renderer a widget to enter the pin for login into the token
+ */
 static void
 on_login_button_clicked (GtkWidget *widget,
                          gpointer data)
@@ -539,7 +631,12 @@ on_login_button_clicked (GtkWidget *widget,
 
         gtk_widget_show_all (GTK_WIDGET (self->box));
 }
-
+/**
+ * gcr_certificate_chooser_pkcs11_new:
+ * Create new pkcs11 token object
+ * Return: (type GcrCertificatePkcs11):a new certificatechooser pkcs11
+ * widget
+ */
 GcrCertificateChooserPkcs11 *
 gcr_certificate_chooser_pkcs11_new (GckSlot *slot,
                                     gboolean is_certificate_choosen)
